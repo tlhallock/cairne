@@ -10,11 +10,11 @@ from structlog import get_logger
 
 SAVE_PATH = "output/datastore.json"
 
+from cairne.model.generated import Generated
+
 
 class Datastore(BaseModel):
-	worlds: Dict[uuid.UUID, model_generated.GeneratedEntity] = field(
-		default_factory=dict
-	)
+	worlds: Dict[uuid.UUID, model_generated.GeneratedEntity] = field(default_factory=dict)
 	generations: Dict[uuid.UUID, Any] = field(default_factory=dict)
 
 	@staticmethod

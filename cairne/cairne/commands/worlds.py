@@ -13,6 +13,10 @@ import cairne.schema.generated as generated_schema
 import cairne.schema.worlds as worlds_schema
 from cairne.commands.base import Command
 from cairne.model.world_spec import WORLD
+from structlog import get_logger
+
+
+logger = get_logger(__name__)
 
 # The world should probably have been seperate
 
@@ -22,6 +26,7 @@ class CreateWorld(Command):
 	request: worlds_schema.CreateWorldRequest
 
 	def execute(self) -> generated_schema.CreateEntityResponse:
+		logger.info("Number of worlds", length=len(self.datastore.worlds))
 		context = parsing.ParseContext(
 			source=generated_model.GenerationSource(
 				source_type=generated_model.GenerationSourceType.DEFAULT_VALUE
@@ -32,6 +37,8 @@ class CreateWorld(Command):
 		self.datastore.worlds[entity.entity_id] = entity
 		child_path = spec.GeneratablePath(path_elements=[])
 		self.datastore.save()
+
+		logger.info("Number of worlds after", length=len(self.datastore.worlds), entity_id=entity.entity_id)
 
 		response = generated_schema.CreateEntityResponse(
 			entity_id=entity.entity_id, path=child_path
@@ -48,7 +55,9 @@ class ListWorlds(Command):
 				generated_entity=world,
 			)
 			for world in self.datastore.worlds.values()
+			if world.deletion is None
 		]
+		logger.info("Returning worlds", entities=entities)
 		response = generated_schema.ListEntitiesResponse(entities=entities)
 		return response
 
@@ -84,7 +93,6 @@ class DeleteWorld(Command):
 			date=datetime.datetime.now(),
 			deleted_by=self.user,
 		)
-		self.datastore.worlds.pop(world_uuid, None)
 		self.datastore.save()
 
 		return generated_schema.DeleteEntityResponse()

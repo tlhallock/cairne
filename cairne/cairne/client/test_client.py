@@ -43,6 +43,8 @@ def find_world(
 	worlds: List[generated_schema.GeneratedEntity], world_id: str
 ) -> Optional[generated_schema.GeneratedEntity]:
 	for world in worlds:
+		if world.name is None:
+			logger.error("Found invalid world", world=world)
 		if world.entity_id == world_id:
 			return world
 	return None
@@ -50,7 +52,11 @@ def find_world(
 
 def test_list_worlds():
 	with temporary_world("Test World") as world:
-		found = find_world(worlds=[world], world_id=world.entity_id)
+		response = requests.get(f"{HOST}/worlds")
+		list_response = generated_schema.ListEntitiesResponse(**response.json())
+		assert response.status_code == 200
+  
+		found = find_world(worlds=list_response.entities, world_id=world.entity_id)
 		assert found is not None
 
 

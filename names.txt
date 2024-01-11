@@ -1,0 +1,8 @@
+cairne (Elder Titan) for the world generator server
+valora (Dawn Breaker) for the front end for the world generator
+skitskurr (Weaver) for the godot server
+zet (Arc Warden) for godot common code
+vloy (Related to morphling) for the godot front end
+?? for terraform scripts
+oracle makes sense as an ai or engine
+ashkavor (grim stroke) for the 

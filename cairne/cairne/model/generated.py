@@ -5,13 +5,15 @@ import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, Literal
 
+from typing_extensions import Annotated
 import cairne.model.calls as calls
 import cairne.model.specification as spec
 import cairne.parsing.parse_incomplete_json as parse_incomplete
 from pydantic import BaseModel, Field
 from structlog import get_logger
+import abc
 
 logger = get_logger(__name__)
 
@@ -96,7 +98,7 @@ class LocatedEntity(BaseModel):
 	path: spec.GeneratablePath = Field()
 
 
-class Generated(BaseModel):
+class GeneratedBase(BaseModel):
 	metadata: GenerationMetadata = Field(default_factory=GenerationMetadata)
 	raw: Union[str, int, float, bool, None, dict, list] = Field(default=None)
 	result: Optional[
@@ -120,26 +122,24 @@ class Generated(BaseModel):
 	def get(self, path: spec.GeneratablePath, path_index: int) -> "Generated":
 		raise NotImplementedError
 
-	# class Config:
-	#     arbitrary_types_allowed = True
 
-
-class GeneratedValue(Generated):
+class GeneratedValue(GeneratedBase):
 	# choices presented to the user?
 	def search_for_entity(
 		self, entity_id: uuid.UUID, path: spec.GeneratablePath
 	) -> Optional[LocatedEntity]:
 		return None
 
-	def get(self, path: spec.GeneratablePath, path_index: int) -> Generated:
+	def get(self, path: spec.GeneratablePath, path_index: int) -> "Generated":
 		if path_index == len(path.path_elements):
-			return self
+			return self  # type: ignore
 		raise spec.InvalidPathError(
 			path=path, index=path_index, message="Cannot traverse into a value"
 		)
 
 
 class GeneratedString(GeneratedValue):
+	generated_type: Literal["string"] = Field(default_factory=lambda: "string")
 	parsed: Optional[str] = Field(default=None)
 
 	def is_generated(self) -> bool:
@@ -147,6 +147,7 @@ class GeneratedString(GeneratedValue):
 
 
 class GeneratedFloat(GeneratedValue):
+	generated_type: Literal["float"] = Field(default_factory=lambda: "float")
 	parsed: Optional[float] = Field(default=None)
 
 	def is_generated(self) -> bool:
@@ -154,6 +155,7 @@ class GeneratedFloat(GeneratedValue):
 
 
 class GeneratedInteger(GeneratedValue):
+	generated_type: Literal["integer"] = Field(default_factory=lambda: "integer")
 	parsed: Optional[int] = Field(default=None)
 
 	def is_generated(self) -> bool:
@@ -161,20 +163,22 @@ class GeneratedInteger(GeneratedValue):
 
 
 class GeneratedBoolean(GeneratedValue):
+	generated_type: Literal["boolean"] = Field(default_factory=lambda: "boolean")
 	parsed: Optional[bool] = Field(default=False)
 
 	def is_generated(self) -> bool:
 		return self.parsed is not None
 
 
-class GeneratedObject(Generated):
+class GeneratedObject(GeneratedBase):
+	generated_type: Literal["object"] = Field(default_factory=lambda: "object")
 	children: Dict[str, "Generated"] = Field(default=dict)
 	parsed: Optional[dict] = Field(default=dict)
 
 	def is_generated(self) -> bool:
 		return self.parsed is not None and len(self.parsed) > 0
 
-	def get(self, path: spec.GeneratablePath, path_index: int) -> Generated:
+	def get(self, path: spec.GeneratablePath, path_index: int) -> "Generated":
 		if path_index == len(path.path_elements):
 			return self
 		path_element = path.at(path_index)
@@ -203,7 +207,8 @@ class GeneratedObject(Generated):
 		return None
 
 
-class GeneratedList(Generated):
+class GeneratedList(GeneratedBase):
+	generated_type: Literal["list"] = Field(default_factory=lambda: "list")
 	elements: List["Generated"] = Field(default=list)
 	parsed: Optional[list] = Field(default=dict)
 
@@ -221,7 +226,7 @@ class GeneratedList(Generated):
 				return located
 		return None
 
-	def get(self, path: spec.GeneratablePath, path_index: int) -> Generated:
+	def get(self, path: spec.GeneratablePath, path_index: int) -> "Generated":
 		if path_index == len(path.path_elements):
 			return self
 		path_element = path.at(path_index)
@@ -246,6 +251,7 @@ class GeneratedList(Generated):
 
 
 class GeneratedEntity(GeneratedObject):
+	generated_type: Literal["entity"] = Field(default_factory=lambda: "entity")
 	entity_id: uuid.UUID = Field(default_factory=uuid.uuid4)
 	entity_type: spec.EntityType = Field()
 	# entity type?
@@ -270,7 +276,8 @@ class GeneratedEntity(GeneratedObject):
 		return parent_path.append(spec.GeneratablePathElement(entity_id=self.entity_id))
 
 
-class EntityDictionary(Generated):
+class EntityDictionary(GeneratedBase):
+	generated_type: Literal["entity_dictionary"] = Field(default_factory=lambda: "entity_dictionary")
 	entities: Dict[uuid.UUID, GeneratedEntity] = Field(default_factory=dict)
 
 	def is_generated(self) -> bool:
@@ -290,7 +297,7 @@ class EntityDictionary(Generated):
 				return located
 		return None
 
-	def get(self, path: spec.GeneratablePath, path_index: int) -> Generated:
+	def get(self, path: spec.GeneratablePath, path_index: int) -> "Generated":
 		if path_index == len(path.path_elements):
 			return self
 		path_element = path.at(path_index)
@@ -310,7 +317,8 @@ class EntityDictionary(Generated):
 		return entity.get(path=path, path_index=path_index + 1)
 
 
-class GeneratedReference(Generated):
+class GeneratedReference(GeneratedBase):
+	generated_type: Literal["reference"] = Field(default_factory=lambda: "reference")
 	entity_type: Optional[spec.EntityType] = Field(default_factory=None)
 	entity_id: Optional[uuid.UUID] = Field(default_factory=None)
 	entity_name: Optional[str] = Field(default_factory=None)
@@ -329,7 +337,7 @@ class GeneratedReference(Generated):
 	) -> Optional[LocatedEntity]:
 		return None
 
-	def get(self, path: spec.GeneratablePath, path_index: int) -> Generated:
+	def get(self, path: spec.GeneratablePath, path_index: int) -> "Generated":
 		if path_index == len(path.path_elements):
 			return self
 		raise spec.InvalidPathError(
@@ -337,6 +345,23 @@ class GeneratedReference(Generated):
 		)
 
 
+
+Generated = Annotated[
+	Union[
+		GeneratedString,
+		GeneratedFloat,
+		GeneratedInteger,
+		GeneratedBoolean,
+		GeneratedObject,
+		GeneratedList,
+		GeneratedEntity,
+		EntityDictionary,
+		GeneratedReference
+	],
+	Field(discriminator='generated_type')
+]
+
 # class Generatable(BaseModel):
 # choices
 # call_ids: List[uuid.UUID]
+
