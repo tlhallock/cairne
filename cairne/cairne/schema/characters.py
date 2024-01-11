@@ -1,11 +1,11 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any, Union
 import datetime
 import uuid
+from enum import Enum
+from typing import Any, Dict, List, Optional, Union
+
 import cairne.model.generated as generated
 from cairne.schema.base import Response
-from enum import Enum
-
+from pydantic import BaseModel, Field
 
 # class GenerationStateField(BaseModel):
 #     name: str
@@ -36,8 +36,8 @@ from enum import Enum
 
 
 # class CreateCharacterRequest(BaseModel):
-    # This is not actually needed because the world id is in the URL
-    # world_id: uuid.UUID = Field()
+# This is not actually needed because the world id is in the URL
+# world_id: uuid.UUID = Field()
 
 
 # class CreateCharacterResponse(Response):
@@ -51,7 +51,7 @@ from enum import Enum
 
 # class DeleteCharacterResponse(Response):
 #     character_id: uuid.UUID = Field()
-    
+
 
 # class CompleteCharacterRequest(BaseModel):
 #     world_id: uuid.UUID = Field()
@@ -61,4 +61,3 @@ from enum import Enum
 
 # class CompleteCharacterResponse(Response):
 #     generation_id: uuid.UUID = Field()
-

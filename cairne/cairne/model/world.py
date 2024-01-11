@@ -1,12 +1,11 @@
-
-from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any, Union
 import datetime
 import uuid
-import cairne.model.generated as gen
+from typing import Any, Dict, List, Optional, Union
+
 import cairne.model.calls as calls
 import cairne.model.character as chars
-
+import cairne.model.generated as gen
+from pydantic import BaseModel, Field
 
 # class World(BaseModel):
 #     world_id: uuid.UUID = Field(default_factory=uuid.uuid4)
@@ -18,7 +17,3 @@ import cairne.model.character as chars
 #     concept: Optional[str] = Field(default=None)
 #     theme: Optional[str] = Field(default=None)
 #     characters: Dict[uuid.UUID, chars.Character] = Field(default_factory=dict)
-
-    
-    
-

@@ -1,11 +1,10 @@
-from cairne.serve.serve import serve
-
 import logging
-import structlog
 import sys
 
+import structlog
+from cairne.serve.serve import serve
 
-if __name__ == '__main__':
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-    structlog.configure()
-    serve()
+if __name__ == "__main__":
+	logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+	structlog.configure()
+	serve()

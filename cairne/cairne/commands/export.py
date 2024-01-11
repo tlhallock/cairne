@@ -1,15 +1,13 @@
-
-from cairne.commands.base import Command
+import uuid
 from dataclasses import dataclass, field
+
+import cairne.model.character as characters_model
 import cairne.model.generated as generated_model
 import cairne.model.world as worlds_model
-import cairne.model.character as characters_model
-import cairne.schema.worlds as worlds_schema
 import cairne.schema.characters as characters_schema
 import cairne.schema.generated as generated_schema
-import uuid
-
-
+import cairne.schema.worlds as worlds_schema
+from cairne.commands.base import Command
 
 # def export_world(world: generated_model.GeneratedEntity) -> worlds_schema.World:
 #     return worlds_schema.World(
@@ -39,28 +37,34 @@ import uuid
 #     )
 
 
-def export_generated_entity_item(path: generated_model.GeneratablePath, generated_entity: generated_model.GeneratedEntity) -> generated_schema.GeneratedEntityListItem:
-    return generated_schema.GeneratedEntityListItem(
-        entity_id=generated_entity.entity_id,
-        name=generated_entity.get_name(),
-        image_uri=None,
-        created_at=generated_entity.get_creation_date(),
-        updated_at=generated_entity.metadata.date,
-        path=generated_entity.create_path(),
-    )
+def export_generated_entity_item(
+	path: generated_model.GeneratablePath,
+	generated_entity: generated_model.GeneratedEntity,
+) -> generated_schema.GeneratedEntityListItem:
+	return generated_schema.GeneratedEntityListItem(
+		entity_id=generated_entity.entity_id,
+		name=generated_entity.get_name(),
+		image_uri=None,
+		created_at=generated_entity.get_creation_date(),
+		updated_at=generated_entity.metadata.date,
+		path=generated_entity.create_path(),
+	)
 
 
-def export_generated_entity(path: generated_model.GeneratablePath, generated_entity: generated_model.GeneratedEntity) -> generated_schema.GeneratedEntity:
-    return generated_schema.GeneratedEntity(
-        entity_id=generated_entity.entity_id,
-        name=generated_entity.get_name(),
-        image_uri=None,
-        created_at=generated_entity.get_creation_date(),
-        updated_at=generated_entity.metadata.date,
-        path=generated_entity.create_path(),
-        js=generated_entity.model_dump_json(),
-        fields=[]
-    )
+def export_generated_entity(
+	path: generated_model.GeneratablePath,
+	generated_entity: generated_model.GeneratedEntity,
+) -> generated_schema.GeneratedEntity:
+	return generated_schema.GeneratedEntity(
+		entity_id=generated_entity.entity_id,
+		name=generated_entity.get_name(),
+		image_uri=None,
+		created_at=generated_entity.get_creation_date(),
+		updated_at=generated_entity.metadata.date,
+		path=generated_entity.create_path(),
+		js=generated_entity.model_dump_json(),
+		fields=[],
+	)
 
 
 # def export_generation(path: generated_model.GeneratablePath, generated_entity: generated_model.GeneratedEntity) -> generated_schema.GeneratedEntity:
@@ -73,14 +77,6 @@ def export_generated_entity(path: generated_model.GeneratablePath, generated_ent
 #         path=generated_entity.create_path(),
 #         js=generated_entity.model_dump_json(),
 #     )
-
-
-
-
-
-
-
-
 
 
 # def export_object_generation_state(character: generated.GeneratableObject) -> characters_schema.Ge:

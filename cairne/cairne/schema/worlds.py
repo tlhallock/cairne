@@ -1,8 +1,9 @@
-from pydantic import BaseModel, Field
-from typing import List, Optional, Dict, Any, Union
 import datetime
 import uuid
+from typing import Any, Dict, List, Optional, Union
+
 from cairne.schema.base import Response
+from pydantic import BaseModel, Field
 
 # # from cairne.schema.base import ENTITY_ID, DATE
 
@@ -35,14 +36,15 @@ from cairne.schema.base import Response
 #     created_at: datetime.datetime = Field(..., description="Creation date of the world")
 #     updated_at: datetime.datetime = Field(..., description="Last update date of the world")
 #     characters: List[CharacterListElement] = Field(..., description="List of characters in the world")
-    
+
 
 # class GetWorldResponse(Response):
 #     world: World = Field(..., description="World")
 
 
 class CreateWorldRequest(BaseModel):
-    name: str = Field(..., description="Name of the world")
+	name: str = Field(..., description="Name of the world")
+
 
 # class CreateWorldResponse(Response):
 #     world_id: uuid.UUID = Field(..., description="UUID of the world")
