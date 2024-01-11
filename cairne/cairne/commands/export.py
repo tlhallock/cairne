@@ -8,6 +8,7 @@ import cairne.schema.characters as characters_schema
 import cairne.schema.generated as generated_schema
 import cairne.schema.worlds as worlds_schema
 from cairne.commands.base import Command
+import cairne.model.specification as spec
 
 # def export_world(world: generated_model.GeneratedEntity) -> worlds_schema.World:
 #     return worlds_schema.World(
@@ -38,7 +39,7 @@ from cairne.commands.base import Command
 
 
 def export_generated_entity_item(
-	path: generated_model.GeneratablePath,
+	path: spec.GeneratablePath,
 	generated_entity: generated_model.GeneratedEntity,
 ) -> generated_schema.GeneratedEntityListItem:
 	return generated_schema.GeneratedEntityListItem(
@@ -52,7 +53,7 @@ def export_generated_entity_item(
 
 
 def export_generated_entity(
-	path: generated_model.GeneratablePath,
+	path: spec.GeneratablePath,
 	generated_entity: generated_model.GeneratedEntity,
 ) -> generated_schema.GeneratedEntity:
 	return generated_schema.GeneratedEntity(

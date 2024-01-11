@@ -12,12 +12,45 @@ import cairne.parsing.parse_incomplete_json as parse_incomplete
 from pydantic import BaseModel, Field
 from structlog import get_logger
 
-if TYPE_CHECKING:
-	import cairne.model.generated as generated_model
-	import cairne.model.parsing as parsing
-
 
 logger = get_logger(__name__)
+
+  
+
+class GeneratablePathElement(BaseModel):
+	key: Optional[str] = Field(default=None)
+	index: Optional[int] = Field(default=None)
+	entity_id: Optional[uuid.UUID] = Field(default=None)
+
+
+class GeneratablePath(BaseModel):
+	path_elements: List[GeneratablePathElement] = Field(default_factory=list)
+
+	def at(self, index: int) -> GeneratablePathElement:
+		if index >= len(self.path_elements):
+			raise InvalidPathError(
+				path=self,
+				index=index,
+				message=f"Descended out of bounds for path {self.path_elements}",
+			)
+		return self.path_elements[index]
+
+	def append(self, element: GeneratablePathElement) -> "GeneratablePath":
+		return GeneratablePath(
+			path_elements=[element.model_copy() for element in self.path_elements]
+			+ [element]
+		)
+
+
+class InvalidPathError(Exception):
+	path: "GeneratablePath"
+	index: int
+	message: str
+
+	def __init__(self, path: "GeneratablePath", index: int, message: str):
+		self.path = path
+		self.index = index
+		self.message = message
 
 
 @dataclass
@@ -73,10 +106,11 @@ class EntityType(str, Enum):
 	def get_field_name(self) -> str:
 		return self.value + "s"
 
-	def get_dictionary_path(self) -> generated_model.GeneratablePath:
-		return generated_model.GeneratablePath(
+	# Is this needed?
+	def get_dictionary_path(self) -> GeneratablePath:
+		return GeneratablePath(
 			path_elements=[
-				generated_model.GeneratablePathElement(key=self.get_field_name())
+				GeneratablePathElement(key=self.get_field_name())
 			]
 		)
 
@@ -192,9 +226,7 @@ class ListSpecification(GeneratableSpecification):
 
 
 class EntitySpecification(ObjectSpecification):
-	parser: ParserSpecification = Field(
-		default_factory=lambda: ParserSpecification(parser_name=ParserName.ENTITY)
-	)
+	parser: ParserSpecification = Field(default_factory=lambda: ParserSpecification(parser_name=ParserName.ENTITY))
 	entity_type: EntityType = Field()
 
 

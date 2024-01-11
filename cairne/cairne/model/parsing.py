@@ -3,7 +3,7 @@ import json
 import typing
 import uuid
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -23,13 +23,11 @@ logger = get_logger(__name__)
 #     success: bool
 
 
-@dataclass
-class PathElement:
-	key: str
-	generated: gen.Generated
+class PathElement(BaseModel):
+	key: str = Field()
+	generated: gen.Generated = Field()
 
 
-@dataclass
 class ParseContext(BaseModel):
 	source: gen.GenerationSource = Field()
 	current_path: List[str] = Field(default_factory=list)
@@ -243,7 +241,7 @@ def parse_object(
 	for key, child_spec in specification.children.items():
 		child_input = get_child_input(context, dict_value, key)
 		with context.with_path(key=f".{key}"):
-			child = parse(context, child_spec.parser, child_input)
+			child = parse(context, child_spec, child_input)
 		children[key] = child
 
 	kwargs = dict(
@@ -256,6 +254,7 @@ def parse_object(
 		kwargs["entity_id"] = uuid.UUID(dict_value["entity_id"])
 
 	if specification.parser.parser_name == spec.ParserName.ENTITY:
+		kwargs["entity_type"] = specification.entity_type
 		return gen.GeneratedEntity(**kwargs)
 	elif specification.parser.parser_name == spec.ParserName.OBJECT:
 		return gen.GeneratedObject(**kwargs)
@@ -268,6 +267,8 @@ def parse_object(
 def parse_entity_dictionary(
 	context: ParseContext, specification: spec.EntityDictionarySpecification, raw: Any
 ) -> gen.EntityDictionary:
+	if raw is None:
+		raw = {}
 	assert isinstance(raw, dict)
 
 	# dict_value = parse_dict(context, raw)
@@ -280,7 +281,7 @@ def parse_entity_dictionary(
 
 		with context.with_path(key=f'["{uuid}"]'):
 			untyped_child = parse(
-				context, specification.entity_specification.parser, child_input
+				context, specification.entity_specification, child_input
 			)
 			child = typing.cast(gen.GeneratedEntity, untyped_child)
 		entities[entity_uuid] = child
@@ -330,7 +331,7 @@ def parse_list(
 		for index, raw_element in enumerate(parsed):
 			with context.with_path(key=f"[{index}]"):
 				element = parse(
-					context, specification.element_specification.parser, raw_element
+					context, specification.element_specification, raw_element
 				)
 			elements.append(element)
 	else:
@@ -345,32 +346,48 @@ def parse_list(
 
 
 def parse(
-	context: ParseContext, specification: spec.ParserSpecification, raw: Any
+	context: ParseContext, specification: spec.GeneratableSpecification, raw: Any
 ) -> gen.Generated:
-	if specification.parser_name == spec.ParserName.LIST:
+	if specification.parser.parser_name == spec.ParserName.LIST:
+		if not isinstance(specification, spec.ListSpecification):
+			raise ValueError(f"Expected ListSpecification, found {specification}")
 		list_spec = typing.cast(spec.ListSpecification, specification)
 		return parse_list(context, list_spec, raw)
-	elif specification.parser_name == spec.ParserName.OBJECT:
+	elif specification.parser.parser_name == spec.ParserName.OBJECT:
+		if not isinstance(specification, spec.ObjectSpecification):
+			raise ValueError(f"Expected ObjectSpecification, found {specification}")
 		object_spec = typing.cast(spec.ObjectSpecification, specification)
 		return parse_object(context, object_spec, raw)
-	elif specification.parser_name == spec.ParserName.ENTITY:
+	elif specification.parser.parser_name == spec.ParserName.ENTITY:
+		if not isinstance(specification, spec.EntitySpecification):
+			raise ValueError(f"Expected EntitySpecification, found {specification}")
 		entity_spec = typing.cast(spec.EntitySpecification, specification)
 		return parse_object(context, entity_spec, raw)
-	elif specification.parser_name == spec.ParserName.ENTITY_DICTIONARY:
-		entity_dict_spec = typing.cast(
-			spec.EntityDictionarySpecification, specification
-		)
+	elif specification.parser.parser_name == spec.ParserName.ENTITY_DICTIONARY:
+		if not isinstance(specification, spec.EntityDictionarySpecification):
+			raise ValueError(
+				f"Expected EntityDictionarySpecification, found {specification}"
+			)
+		entity_dict_spec = typing.cast(spec.EntityDictionarySpecification, specification)
 		return parse_entity_dictionary(context, entity_dict_spec, raw)
-	elif specification.parser_name == spec.ParserName.STRING:
+	elif specification.parser.parser_name == spec.ParserName.STRING:
+		if not isinstance(specification, spec.ValueSpecification):
+			raise ValueError(f"Expected ValueSpecification, found {specification}")     
 		str_spec = typing.cast(spec.ValueSpecification, specification)
 		return parse_string(context, str_spec, raw)
-	elif specification.parser_name == spec.ParserName.FLOAT:
+	elif specification.parser.parser_name == spec.ParserName.FLOAT:
+		if not isinstance(specification, spec.ValueSpecification):
+			raise ValueError(f"Expected ValueSpecification, found {specification}")
 		value_spec = typing.cast(spec.ValueSpecification, specification)
 		return parse_float(context, value_spec, raw)
-	elif specification.parser_name == spec.ParserName.INTEGER:
+	elif specification.parser.parser_name == spec.ParserName.INTEGER:
+		if not isinstance(specification, spec.ValueSpecification):
+			raise ValueError(f"Expected ValueSpecification, found {specification}")
 		value_spec = typing.cast(spec.ValueSpecification, specification)
 		return parse_integer(context, value_spec, raw)
-	elif specification.parser_name == spec.ParserName.BOOLEAN:
+	elif specification.parser.parser_name == spec.ParserName.BOOLEAN:
+		if not isinstance(specification, spec.ValueSpecification):
+			raise ValueError(f"Expected ValueSpecification, found {specification}")
 		value_spec = typing.cast(spec.ValueSpecification, specification)
 		return parse_boolean(context, value_spec, raw)
 	else:

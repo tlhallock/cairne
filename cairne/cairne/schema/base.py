@@ -53,7 +53,6 @@ def generate_json_schema():
 		cairne.schema.generated.GeneratedEntity,
 		cairne.schema.generated.GeneratedEntityListItem,
 		cairne.schema.generated.GeneratedItem,
-		cairne.schema.generated.GeneratedValueType,
 		cairne.schema.generated.GenerationHistory,
 		cairne.schema.generated.GenerationState,
 		cairne.schema.generated.GetEntityRequest,
@@ -68,6 +67,8 @@ def generate_json_schema():
 		cairne.schema.loaded_models.UnloadModelRequest,
 		cairne.schema.loaded_models.UnloadModelResponse,
 		cairne.schema.worlds.CreateWorldRequest,
+  
+		# cairne.schema.generated.GeneratedValueType,
 	]
 	_, top_level_schema = models_json_schema(
 		[(model, "validation") for model in models], title="Cairne Schema"

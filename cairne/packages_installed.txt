@@ -7,3 +7,11 @@ pydantic-to-typescript  # Not needed anymore: it doesn't work with pydantic 2
 ipdb
 
 requests
+types-requests
+types-Flask-Cors
+mypy
+
+
+regret:
+    black
+    black-with-tabs

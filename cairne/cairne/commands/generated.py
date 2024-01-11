@@ -30,7 +30,7 @@ class CreateEntity(Command):
 				source_type=generated_model.GenerationSourceType.DEFAULT_VALUE
 			)
 		)
-		generated = parsing.parse(context, specification.parser, raw=None)
+		generated = parsing.parse(context, specification, raw=None)
 		entity = typing.cast(generated_model.GeneratedEntity, generated)
 
 		world = self.datastore.worlds.get(self.request.world_id, None)
@@ -43,9 +43,7 @@ class CreateEntity(Command):
 		)
 		entity_dictionary.entities[entity.entity_id] = entity
 
-		child_path = insert_path.append(
-			generated_model.GeneratablePathElement(entity_id=entity.entity_id)
-		)
+		child_path = insert_path.append(spec.GeneratablePathElement(entity_id=entity.entity_id))
 		self.datastore.save()
 
 		response = generated_schema.CreateEntityResponse(
@@ -70,7 +68,7 @@ class ListEntities(Command):
 		entities = [
 			export.export_generated_entity_item(
 				path=path.append(
-					generated_model.GeneratablePathElement(entity_id=entity.entity_id)
+					spec.GeneratablePathElement(entity_id=entity.entity_id)
 				),
 				generated_entity=entity,
 			)
@@ -91,7 +89,7 @@ class GetEntity(Command):
 		if world is None:
 			raise ValueError(f"World not found: {self.world_id}")
 
-		search_path = generated_model.GeneratablePath(path_elements=[])
+		search_path = spec.GeneratablePath(path_elements=[])
 		located_entity = world.search_for_entity(self.entity_id, path=search_path)
 		if located_entity is None:
 			raise ValueError(f"Entity not found: {self.entity_id}")
@@ -113,7 +111,7 @@ class DeleteEntity(Command):
 
 		located_entity = world.search_for_entity(
 			self.request.entity_id,
-			path=generated_model.GeneratablePath(path_elements=[]),
+			path=spec.GeneratablePath(path_elements=[]),
 		)
 		if located_entity is None:
 			raise ValueError(f"Entity not found: {self.request.entity_id}")

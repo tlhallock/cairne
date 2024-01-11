@@ -13,12 +13,12 @@ from pydantic import BaseModel, Field
 
 
 class GeneratedValueType(str, Enum):
-	STRING = "string"
-	FLOAT = "float"
-	INT = "int"
-	BOOLEAN = "boolean"
-	OBJECT = "object"
-	LIST = "list"
+	GENERATED_STRING = "generated_string"
+	GENERATED_FLOAT = "generated_float"
+	GENERATED_INT = "generated_int"
+	GENERATED_BOOLEAN = "generated_boolean"
+	GENERATED_OBJECT = "generated_object"
+	GENERATED_LIST = "generated_list"
 
 
 class GenerationHistory(BaseModel):
@@ -37,7 +37,7 @@ class GeneratedItem(BaseModel):
 	value_js: str = Field()
 	display_path: List[str] = Field(default_factory=list)
 	value_type: GeneratedValueType = Field()
-	edit_path: generated_model.GeneratablePath = Field()
+	edit_path: spec.GeneratablePath = Field()
 	choices: Optional[List[str]] = Field(default=None)
 	validation_errors: List[str] = Field(default_factory=list)
 	# history
@@ -50,7 +50,7 @@ class GeneratedEntity(BaseModel):
 	image_uri: Optional[str] = Field()
 	created_at: datetime.datetime = Field()
 	updated_at: datetime.datetime = Field()
-	path: generated_model.GeneratablePath = Field()
+	path: spec.GeneratablePath = Field()
 	js: str = Field(default=None)
 	fields: List[GeneratedItem] = Field()
 
@@ -61,7 +61,7 @@ class GeneratedEntityListItem(BaseModel):
 	image_uri: Optional[str] = Field()
 	created_at: datetime.datetime = Field()
 	updated_at: datetime.datetime = Field()
-	path: generated_model.GeneratablePath = Field()
+	path: spec.GeneratablePath = Field()
 
 
 ###################################################
@@ -94,7 +94,7 @@ class CreateEntityRequest(BaseModel):
 
 class CreateEntityResponse(Response):
 	entity_id: uuid.UUID = Field()
-	path: generated_model.GeneratablePath = Field()
+	path: spec.GeneratablePath = Field()
 
 
 class DeleteEntityRequest(BaseModel):

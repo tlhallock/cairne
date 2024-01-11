@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Union
 
 import cairne.commands.generated as generated_commands
 import cairne.commands.worlds as world_commands
-import cairne.schema.characters as characters_schema
+import cairne.model.specification as spec
 import cairne.schema.generated as generated_schema
 import cairne.schema.worlds as worlds_schema
 from cairne.serve.data_store import Datastore
@@ -12,6 +12,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
 from flask_pydantic import validate
 from structlog import get_logger
+
 
 # Story idea: the last human
 
@@ -122,6 +123,8 @@ def create_entity(
 	request = generated_schema.CreateEntityRequest.model_validate(
 		dict(world_id=world_id, entity_type=entity_type, name=body.name)
 	)
+	assert body.entity_type == entity_type
+	assert body.world_id == world_id
 	command = generated_commands.CreateEntity(
 		datastore=datastore, user="test", request=request
 	)

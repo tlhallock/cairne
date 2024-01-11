@@ -1,3 +1,4 @@
+
 import datetime
 import json
 import uuid
@@ -50,41 +51,6 @@ GeneratableEntity
 """
 
 
-class GeneratablePathElement(BaseModel):
-	key: Optional[str] = Field(default=None)
-	index: Optional[int] = Field(default=None)
-	entity_id: Optional[uuid.UUID] = Field(default=None)
-
-
-class GeneratablePath(BaseModel):
-	path_elements: List[GeneratablePathElement] = Field(default_factory=list)
-
-	def at(self, index: int) -> GeneratablePathElement:
-		if index >= len(self.path_elements):
-			raise InvalidPathError(
-				path=self,
-				index=index,
-				message=f"Descended out of bounds for path {self.path_elements}",
-			)
-		return self.path_elements[index]
-
-	def append(self, element: GeneratablePathElement) -> "GeneratablePath":
-		return GeneratablePath(
-			path_elements=[element.model_copy() for element in self.path_elements]
-			+ [element]
-		)
-
-
-class InvalidPathError(Exception):
-	path: GeneratablePath
-	index: int
-	message: str
-
-	def __init__(self, path: GeneratablePath, index: int, message: str):
-		self.path = path
-		self.index = index
-		self.message = message
-
 
 class GenerationOption(BaseModel):
 	name: str
@@ -102,9 +68,7 @@ class GenerationSourceType(str, Enum):
 
 
 class GenerationSource(BaseModel):
-	source_type: GenerationSourceType = Field(
-		default=GenerationSourceType.UNINITIALIZED
-	)
+	source_type: GenerationSourceType = Field(default=GenerationSourceType.UNINITIALIZED)
 	model_call: Optional[calls.ModelCall] = Field(default=None)
 	# user selection of language model output
 	pass
@@ -118,7 +82,7 @@ class GeneratedVersion(BaseModel):
 
 class GenerationMetadata(BaseModel):
 	source: GenerationSource = Field(default_factory=GenerationSource)
-	previous: List["GeneratedVersion"] = Field(default=list)
+	previous: List["GeneratedVersion"] = Field(default_factory=list)
 	date: datetime.datetime = Field(default_factory=datetime.datetime.utcnow)
 
 
@@ -129,7 +93,7 @@ class Deletion(BaseModel):
 
 class LocatedEntity(BaseModel):
 	entity: "GeneratedEntity" = Field()
-	path: GeneratablePath = Field()
+	path: spec.GeneratablePath = Field()
 
 
 class Generated(BaseModel):
@@ -149,11 +113,11 @@ class Generated(BaseModel):
 		return self.metadata.previous[-1].date
 
 	def search_for_entity(
-		self, entity_id: uuid.UUID, path: GeneratablePath
+		self, entity_id: uuid.UUID, path: spec.GeneratablePath
 	) -> Optional[LocatedEntity]:
 		raise NotImplementedError
 
-	def get(self, path: GeneratablePath, path_index: int) -> "Generated":
+	def get(self, path: spec.GeneratablePath, path_index: int) -> "Generated":
 		raise NotImplementedError
 
 	# class Config:
@@ -163,14 +127,14 @@ class Generated(BaseModel):
 class GeneratedValue(Generated):
 	# choices presented to the user?
 	def search_for_entity(
-		self, entity_id: uuid.UUID, path: GeneratablePath
+		self, entity_id: uuid.UUID, path: spec.GeneratablePath
 	) -> Optional[LocatedEntity]:
 		return None
 
-	def get(self, path: GeneratablePath, path_index: int) -> Generated:
+	def get(self, path: spec.GeneratablePath, path_index: int) -> Generated:
 		if path_index == len(path.path_elements):
 			return self
-		raise InvalidPathError(
+		raise spec.InvalidPathError(
 			path=path, index=path_index, message="Cannot traverse into a value"
 		)
 
@@ -210,17 +174,17 @@ class GeneratedObject(Generated):
 	def is_generated(self) -> bool:
 		return self.parsed is not None and len(self.parsed) > 0
 
-	def get(self, path: GeneratablePath, path_index: int) -> Generated:
+	def get(self, path: spec.GeneratablePath, path_index: int) -> Generated:
 		if path_index == len(path.path_elements):
 			return self
 		path_element = path.at(path_index)
 		if path_element.key is None:
-			raise InvalidPathError(
+			raise spec.InvalidPathError(
 				path=path, index=path_index, message="Expected a key for an object"
 			)
 		child = self.children.get(path_element.key, None)
 		if child is None:
-			raise InvalidPathError(
+			raise spec.InvalidPathError(
 				path=path,
 				index=path_index,
 				message=f"Could not find child with key {path_element.key}",
@@ -228,11 +192,11 @@ class GeneratedObject(Generated):
 		return child.get(path=path, path_index=path_index + 1)
 
 	def search_for_entity(
-		self, entity_id: uuid.UUID, path: GeneratablePath
+		self, entity_id: uuid.UUID, path: spec.GeneratablePath
 	) -> Optional[LocatedEntity]:
 		for key, child in self.children.items():
 			located = child.search_for_entity(
-				entity_id, path.append(GeneratablePathElement(key=key))
+				entity_id, path.append(spec.GeneratablePathElement(key=key))
 			)
 			if located is not None:
 				return located
@@ -247,32 +211,32 @@ class GeneratedList(Generated):
 		return self.parsed is not None and len(self.parsed) > 0
 
 	def search_for_entity(
-		self, entity_id: uuid.UUID, path: GeneratablePath
+		self, entity_id: uuid.UUID, path: spec.GeneratablePath
 	) -> Optional[LocatedEntity]:
 		for index, child in enumerate(self.elements):
 			located = child.search_for_entity(
-				entity_id, path.append(GeneratablePathElement(index=index))
+				entity_id, path.append(spec.GeneratablePathElement(index=index))
 			)
 			if located is not None:
 				return located
 		return None
 
-	def get(self, path: GeneratablePath, path_index: int) -> Generated:
+	def get(self, path: spec.GeneratablePath, path_index: int) -> Generated:
 		if path_index == len(path.path_elements):
 			return self
 		path_element = path.at(path_index)
 		if path_element.index is None:
-			raise InvalidPathError(
+			raise spec.InvalidPathError(
 				path=path, index=path_index, message="Expected an index for a list"
 			)
 		if path_element.index >= len(self.elements):
-			raise InvalidPathError(
+			raise spec.InvalidPathError(
 				path=path,
 				index=path_index,
 				message=f"Index {path_element.index} out of bounds for list of length {len(self.elements)}",
 			)
 		if path_element.index < 0:
-			raise InvalidPathError(
+			raise spec.InvalidPathError(
 				path=path,
 				index=path_index,
 				message=f"Index {path_element.index} cannot be negative",
@@ -287,7 +251,7 @@ class GeneratedEntity(GeneratedObject):
 	# entity type?
 
 	def search_for_entity(
-		self, entity_id: uuid.UUID, path: GeneratablePath
+		self, entity_id: uuid.UUID, path: spec.GeneratablePath
 	) -> Optional[LocatedEntity]:
 		if self.entity_id == entity_id:
 			return LocatedEntity(entity=self, path=path)
@@ -301,9 +265,9 @@ class GeneratedEntity(GeneratedObject):
 			return None
 		return name.parsed
 
-	def create_path(self) -> GeneratablePath:
+	def create_path(self) -> spec.GeneratablePath:
 		parent_path = self.entity_type.get_dictionary_path()
-		return parent_path.append(GeneratablePathElement(entity_id=self.entity_id))
+		return parent_path.append(spec.GeneratablePathElement(entity_id=self.entity_id))
 
 
 class EntityDictionary(Generated):
@@ -313,32 +277,32 @@ class EntityDictionary(Generated):
 		return len(self.entities) > 0
 
 	def search_for_entity(
-		self, entity_id: uuid.UUID, path: GeneratablePath
+		self, entity_id: uuid.UUID, path: spec.GeneratablePath
 	) -> Optional[LocatedEntity]:
 		# if entity_id in self.entities:
 		#     return LocatedEntity(entity=self.entities[entity_id], path=path.append(GeneratablePathElement(entity_id=entity_id)))
 		for entity in self.entities.values():
 			located = entity.search_for_entity(
 				entity_id,
-				path.append(GeneratablePathElement(entity_id=entity.entity_id)),
+				path.append(spec.GeneratablePathElement(entity_id=entity.entity_id)),
 			)
 			if located is not None:
 				return located
 		return None
 
-	def get(self, path: GeneratablePath, path_index: int) -> Generated:
+	def get(self, path: spec.GeneratablePath, path_index: int) -> Generated:
 		if path_index == len(path.path_elements):
 			return self
 		path_element = path.at(path_index)
 		if path_element.entity_id is None:
-			raise InvalidPathError(
+			raise spec.InvalidPathError(
 				path=path,
 				index=path_index,
 				message="Expected an entity_id for an entity dictionary",
 			)
 		entity = self.entities.get(path_element.entity_id, None)
 		if entity is None:
-			raise InvalidPathError(
+			raise spec.InvalidPathError(
 				path=path,
 				index=path_index,
 				message=f"Could not find entity with id {path_element.entity_id}",
@@ -361,14 +325,14 @@ class GeneratedReference(Generated):
 		)
 
 	def search_for_entity(
-		self, entity_id: uuid.UUID, path: GeneratablePath
+		self, entity_id: uuid.UUID, path: spec.GeneratablePath
 	) -> Optional[LocatedEntity]:
 		return None
 
-	def get(self, path: GeneratablePath, path_index: int) -> Generated:
+	def get(self, path: spec.GeneratablePath, path_index: int) -> Generated:
 		if path_index == len(path.path_elements):
 			return self
-		raise InvalidPathError(
+		raise spec.InvalidPathError(
 			path=path, index=path_index, message="Cannot descend into a reference"
 		)
 

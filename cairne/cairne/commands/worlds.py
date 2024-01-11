@@ -27,12 +27,10 @@ class CreateWorld(Command):
 				source_type=generated_model.GenerationSourceType.DEFAULT_VALUE
 			)
 		)
-		generated = parsing.parse(
-			context, WORLD.parser, raw={"name": self.request.name}
-		)
+		generated = parsing.parse(context, WORLD, raw={"name": self.request.name})
 		entity = typing.cast(generated_model.GeneratedEntity, generated)
 		self.datastore.worlds[entity.entity_id] = entity
-		child_path = generated_model.GeneratablePath(path_elements=[])
+		child_path = spec.GeneratablePath(path_elements=[])
 		self.datastore.save()
 
 		response = generated_schema.CreateEntityResponse(
@@ -46,7 +44,7 @@ class ListWorlds(Command):
 	def execute(self) -> generated_schema.ListEntitiesResponse:
 		entities = [
 			export.export_generated_entity_item(
-				path=generated_model.GeneratablePath(path_elements=[]),
+				path=spec.GeneratablePath(path_elements=[]),
 				generated_entity=world,
 			)
 			for world in self.datastore.worlds.values()
@@ -65,7 +63,7 @@ class GetWorld(Command):
 		if world is None:
 			raise ValueError(f"World not found: {self.world_id}")
 		exported = export.export_generated_entity(
-			path=generated_model.GeneratablePath(path_elements=[]),
+			path=spec.GeneratablePath(path_elements=[]),
 			generated_entity=world,
 		)
 		return generated_schema.GetEntityResponse(entity=exported)

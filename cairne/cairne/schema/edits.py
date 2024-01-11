@@ -15,7 +15,7 @@ class AppendElementRequest(BaseModel):
 	world_id: uuid.UUID = Field()
 	# entity_id: uuid.UUID = Field()
 	value_js: str = Field()
-	path: generated_model.GeneratablePath = Field()
+	path: spec.GeneratablePath = Field()
 
 
 class AppendElementResponse(BaseModel):
@@ -26,7 +26,7 @@ class ReplaceRequest(BaseModel):
 	world_id: uuid.UUID = Field()
 	# entity_id: uuid.UUID = Field()
 	new_value_js: str = Field()
-	path: generated_model.GeneratablePath = Field()
+	path: spec.GeneratablePath = Field()
 
 
 class ReplaceResponse(BaseModel):
@@ -36,7 +36,7 @@ class ReplaceResponse(BaseModel):
 class RemoveValueRequest(BaseModel):
 	world_id: uuid.UUID = Field()
 	# entity_id: uuid.UUID = Field()
-	path: generated_model.GeneratablePath = Field()
+	path: spec.GeneratablePath = Field()
 
 
 class RemoveValueResponse(BaseModel):
