@@ -1,0 +1,9 @@
+flask
+flask-cors
+pydantic
+structlog
+Flask-Pydantic
+pydantic-to-typescript  # Not needed anymore: it doesn't work with pydantic 2
+ipdb
+
+requests
