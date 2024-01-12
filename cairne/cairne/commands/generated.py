@@ -30,7 +30,7 @@ class CreateEntity(Command):
 				source_type=generated_model.GenerationSourceType.DEFAULT_VALUE
 			)
 		)
-		generated = parsing.parse(context, specification, raw=None)
+		generated = parsing.parse(context, specification, raw={"name": self.request.name})
 		entity = typing.cast(generated_model.GeneratedEntity, generated)
 
 		world = self.datastore.worlds.get(self.request.world_id, None)
@@ -73,6 +73,7 @@ class ListEntities(Command):
 				generated_entity=entity,
 			)
 			for entity in entity_dictionary.entities.values()
+			if entity.deletion is None
 		]
 
 		response = generated_schema.ListEntitiesResponse(entities=entities)

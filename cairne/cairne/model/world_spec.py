@@ -51,9 +51,9 @@ WORLD = spec.EntitySpecification(
 				},
 			)
 		),
-		spec.EntityType.CRAFTING_OPTION.get_field_name(): spec.EntityDictionarySpecification(
+		spec.EntityType.CRAFTING_RECIPE.get_field_name(): spec.EntityDictionarySpecification(
 			entity_specification=spec.EntitySpecification(
-				entity_type=spec.EntityType.CRAFTING_OPTION,
+				entity_type=spec.EntityType.CRAFTING_RECIPE,
 				children={
 					"name": spec.ValueSpecification.create_string_value(required=True),
 					"description": spec.ValueSpecification.create_string_value(

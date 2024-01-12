@@ -13,6 +13,9 @@ import { Regions } from './components/regions/regions';
 import { Character } from './components/character/character';
 import { Crafting } from './components/crafting/crafting';
 import { CharactersList } from './components/characters-list/characters-list';
+import { WorldEntitiesList } from './components/world-entities-list/world-entities-list';
+import { EntityEditor } from './components/entity-editor/entity-editor';
+import { EntitiesListRoot } from './components/entities-list-root/entities-list-root';
 
 import { Routes, Route, Link, Outlet, BrowserRouter } from 'react-router-dom';
 
@@ -28,16 +31,15 @@ function App() {
                     <Route path="/models" element={<LoadedModels />} />
                     <Route path="/worlds" element={<Worlds />} />
                     <Route path="/world/:worldId" element={<World />}>
-                        <Route path="details" element={<WorldSettings />} />
-                        <Route path="characters" element={<Characters />}>
+                        <Route index element={<WorldSettings />} />
+                        {/* <Route path="characters" element={<Characters />}>
                             <Route index element={<CharactersList />} />
                             <Route path=":characterId" element={<Character />} />
+                        </Route> */}
+                        <Route path="entities/:entityType" element={<EntitiesListRoot />}>
+                            <Route index element={<WorldEntitiesList />} />
+                            <Route path=":entityId" element={<EntityEditor />} />
                         </Route>
-                        <Route path="items" element={<Items />} />
-                        <Route path="resources" element={<Resources />} />
-                        <Route path="story_elements" element={<StoryElements />} />
-                        <Route path="regions" element={<Regions />} />
-                        <Route path="crafting" element={<Crafting />} />
                     </Route>
                 </Routes>
             </BrowserRouter>

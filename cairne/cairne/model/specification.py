@@ -97,11 +97,41 @@ class EntityType(str, Enum):
 	TOOL = "tool"
 	VEHICLE = "vehicle"
 	BUILDING = "building"
-	CRAFTING_OPTION = "crafting_option"
+	CRAFTING_RECIPE = "crafting_recipe"
 	CRAFTING_LOCATION = "crafting_location"
 	ANIMAL = "animal"
 
 	# LORE = "lore"
+ 
+	def get_label(self) -> str:
+		if self == EntityType.WORLD:
+			return "Worlds"
+		elif self == EntityType.CHARACTER:
+			return "Characters"
+		elif self == EntityType.ITEM:
+			return "Items"
+		elif self == EntityType.RESOURCE_TYPE:
+			return "Resource Types"
+		elif self == EntityType.REGION:
+			return "Regions"
+		elif self == EntityType.PLOT_STAGE:
+			return "Plot Stages"
+		elif self == EntityType.DIALOGUE:
+			return "Dialogues"
+		elif self == EntityType.TOOL:
+			return "Tools"
+		elif self == EntityType.VEHICLE:
+			return "Vehicles"
+		elif self == EntityType.BUILDING:
+			return "Buildings"
+		elif self == EntityType.CRAFTING_RECIPE:
+			return "Crafting Recipes"
+		elif self == EntityType.CRAFTING_LOCATION:
+			return "Crafting Locations"
+		elif self == EntityType.ANIMAL:
+			return "Animals"
+		else:
+			raise NotImplementedError(f"Invalid entity type: {self}")
 
 	def get_field_name(self) -> str:
 		return self.value + "s"
@@ -180,14 +210,21 @@ class OneOfLiteralValidator(ValidatorSpecification):
 	options: List[Tuple[GenerationResult, Set[str]]] = Field(default_factory=list)
 
 
+
+class EditorSpecification(BaseModel):
+    # Maybe this should be one of generated_schema.GeneratedValueEditor...
+    editor_name: str = Field()
+
+
 class GeneratableSpecification(BaseModel):
 	parser: ParserSpecification = Field()
 	validators: List[ValidatorSpecification] = Field(default_factory=list)
+ 
+	def get(self, path: GeneratablePath, path_index: int) -> "GeneratableSpecification":
+		raise NotImplementedError()
 
 
 class ValueSpecification(GeneratableSpecification):
-	pass
-
 	@classmethod
 	def create_spec(
 		cls, parser_name: ParserName, required: bool = False
@@ -203,12 +240,45 @@ class ValueSpecification(GeneratableSpecification):
 	def create_string_value(cls, required: bool = False) -> "ValueSpecification":
 		return cls.create_spec(parser_name=ParserName.STRING, required=required)
 
+	def get(self, path: GeneratablePath, path_index: int) -> "GeneratableSpecification":
+		if path_index != len(path.path_elements):
+			raise InvalidPathError(
+				path=path,
+				index=path_index,
+				message=f"Descended out of bounds for path {path.path_elements}",
+			)
+		return self
+
 
 class ObjectSpecification(GeneratableSpecification):
 	parser: ParserSpecification = Field(
 		default_factory=lambda: ParserSpecification(parser_name=ParserName.OBJECT)
 	)
 	children: Dict[str, GeneratableSpecification] = Field(default=dict)
+ 
+	def get(self, path: GeneratablePath, path_index: int) -> "GeneratableSpecification":
+		if path_index == len(path.path_elements):
+			return self
+		if path_index > len(path.path_elements):
+			raise InvalidPathError(
+				path=path,
+				index=path_index,
+				message=f"Descended out of path bounds for path {path.path_elements}",
+			)
+		path_element = path.at(path_index)
+		if path_element.key is None:
+			raise InvalidPathError(
+				path=path,
+				index=path_index,
+				message=f"Expected key for path element {path_element} at index {path_index}",
+			)
+		if path_element.key not in self.children:
+			raise InvalidPathError(
+				path=path,
+				index=path_index,
+				message=f"Key {path_element.key} not present at index {path_index}. keys: {self.children.keys()}",
+			)
+		return self.children[path_element.key].get(path, path_index + 1)
 
 
 class ListSpecification(GeneratableSpecification):
@@ -223,6 +293,24 @@ class ListSpecification(GeneratableSpecification):
 			# parser=ParserSpecification(parser_name=ParserName.STRING),
 			element_specification=ValueSpecification.create_string_value()
 		)
+ 
+	def get(self, path: GeneratablePath, path_index: int) -> "GeneratableSpecification":
+		if path_index == len(path.path_elements):
+			return self
+		if path_index > len(path.path_elements):
+			raise InvalidPathError(
+				path=path,
+				index=path_index,
+				message=f"Descended out of path bounds for path {path.path_elements}",
+			)
+		path_element = path.at(path_index)
+		if path_element.index is None:
+			raise InvalidPathError(
+				path=path,
+				index=path_index,
+				message=f"Expected index for path element {path_element} at index {path_index}",
+			)
+		return self.element_specification.get(path, path_index + 1)
 
 
 class EntitySpecification(ObjectSpecification):
@@ -237,7 +325,32 @@ class EntityDictionarySpecification(GeneratableSpecification):
 		)
 	)
 	entity_specification: EntitySpecification
+ 
+	def get(self, path: GeneratablePath, path_index: int) -> "GeneratableSpecification":
+		if path_index == len(path.path_elements):
+			return self
+		if path_index > len(path.path_elements):
+			raise InvalidPathError(
+				path=path,
+				index=path_index,
+				message=f"Descended out of path bounds for path {path.path_elements}",
+			)
+		path_element = path.at(path_index)
+		if path_element.entity_id is None:
+			raise InvalidPathError(
+				path=path,
+				index=path_index,
+				message=f"Expected entity id for path element {path_element} at index {path_index}",
+			)
+		return self.entity_specification.get(path, path_index + 1)
 
 
 class ReferenceSpecification(GeneratableSpecification):
-	pass
+	def get(self, path: GeneratablePath, path_index: int) -> "GeneratableSpecification":
+		if path_index == len(path.path_elements):
+			return self
+		raise InvalidPathError(
+			path=path,
+			index=path_index,
+			message=f"Cannot descend into a reference.",
+		)

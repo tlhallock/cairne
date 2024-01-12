@@ -18,7 +18,7 @@ export type GenerationId3 = string;
 export type WorldId1 = string;
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
- * via the `definition` "EntityType".
+ * via the `definition` "cairne__model__specification__EntityType".
  */
 export type EntityType =
   | "world"
@@ -31,7 +31,7 @@ export type EntityType =
   | "tool"
   | "vehicle"
   | "building"
-  | "crafting_option"
+  | "crafting_recipe"
   | "crafting_location"
   | "animal";
 export type Name = string | null;
@@ -42,6 +42,9 @@ export type EntityId1 = string;
 export type Name1 = string;
 export type WorldId2 = string;
 export type EntityId2 = string;
+export type Name2 = string;
+export type Label = string;
+export type TotalNumber = number;
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "GenerationEndpoint".
@@ -56,30 +59,32 @@ export type GeneratorType = "ollama" | "openai" | "hugging_face";
 export type GModelId = string;
 export type GenerationId4 = string;
 export type EntityId3 = string;
-export type Name2 = string | null;
+export type Name3 = string | null;
 export type ImageUri = string | null;
 export type CreatedAt = string;
 export type UpdatedAt = string;
 export type Js = string;
+export type Label1 = string;
 export type RawValue = string;
 export type ValueJs1 = string;
-export type DisplayPath = string[];
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
- * via the `definition` "GeneratedValueType".
+ * via the `definition` "GeneratedValueEditor".
  */
-export type GeneratedValueType =
-  | "generated_string"
-  | "generated_float"
-  | "generated_int"
-  | "generated_boolean"
-  | "generated_object"
-  | "generated_list";
+export type GeneratedValueEditor =
+  | "string"
+  | "float"
+  | "integer"
+  | "boolean"
+  | "object"
+  | "list"
+  | "entities_dictionary";
 export type Choices = string[] | null;
 export type ValidationErrors = string[];
-export type Fields = GeneratedItem[];
+export type Children = GeneratedField[] | null;
+export type Fields = GeneratedField[];
 export type EntityId4 = string;
-export type Name3 = string | null;
+export type Name4 = string | null;
 export type ImageUri1 = string | null;
 export type CreatedAt1 = string;
 export type UpdatedAt1 = string;
@@ -118,6 +123,12 @@ export type WorldId3 = string;
 export type EntityId5 = string | null;
 export type WorldId4 = string;
 export type Entities = GeneratedEntityListItem[];
+export type Name5 = string;
+export type Label2 = string;
+/**
+ * List of entity types
+ */
+export type EntityTypes = EntityType1[];
 export type Generations = GenerationListItem[];
 export type ModelName = string;
 export type LoadedModels = LoadedModel[];
@@ -127,6 +138,16 @@ export type WorldId5 = string;
 export type WorldId6 = string;
 export type NewValueJs = string;
 export type LoadedModelId1 = string;
+/**
+ * ID of the world
+ */
+export type Id = string;
+/**
+ * Name of the world
+ */
+export type Name6 = string;
+export type EntityTypeSummaries = EntityTypeSummary[];
+export type GenerationGoals = string[];
 
 export interface CairneSchema {
   [k: string]: unknown;
@@ -243,6 +264,16 @@ export interface DeleteEntityResponse {
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "EntityTypeSummary".
+ */
+export interface EntityTypeSummary {
+  name: Name2;
+  label: Label;
+  total_number: TotalNumber;
+  [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "GenerateRequest".
  */
 export interface GenerateRequest {
@@ -274,7 +305,7 @@ export interface GenerateResponse {
  */
 export interface GeneratedEntity {
   entity_id: EntityId3;
-  name: Name2;
+  name: Name3;
   image_uri: ImageUri;
   created_at: CreatedAt;
   updated_at: UpdatedAt;
@@ -285,16 +316,18 @@ export interface GeneratedEntity {
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
- * via the `definition` "GeneratedItem".
+ * via the `definition` "GeneratedField".
  */
-export interface GeneratedItem {
+export interface GeneratedField {
+  label: Label1;
   raw_value: RawValue;
   value_js: ValueJs1;
-  display_path?: DisplayPath;
-  value_type: GeneratedValueType;
+  value_type: GeneratedValueEditor;
   edit_path: GeneratablePath;
   choices?: Choices;
   validation_errors?: ValidationErrors;
+  children?: Children;
+  add_value_type?: GeneratedValueEditor | null;
   [k: string]: unknown;
 }
 /**
@@ -303,7 +336,7 @@ export interface GeneratedItem {
  */
 export interface GeneratedEntityListItem {
   entity_id: EntityId4;
-  name: Name3;
+  name: Name4;
   image_uri: ImageUri1;
   created_at: CreatedAt1;
   updated_at: UpdatedAt1;
@@ -419,6 +452,23 @@ export interface ListEntitiesResponse {
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "ListEntityTypesResponse".
+ */
+export interface ListEntityTypesResponse {
+  entity_types: EntityTypes;
+  [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "cairne__schema__worlds__EntityType".
+ */
+export interface EntityType1 {
+  name: Name5;
+  label: Label2;
+  [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "ListGenerationsResponse".
  */
 export interface ListGenerationsResponse {
@@ -510,5 +560,16 @@ export interface UnloadModelRequest {
  * via the `definition` "UnloadModelResponse".
  */
 export interface UnloadModelResponse {
+  [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "WorldSummary".
+ */
+export interface WorldSummary {
+  id: Id;
+  name: Name6;
+  entity_type_summaries: EntityTypeSummaries;
+  generation_goals: GenerationGoals;
   [k: string]: unknown;
 }

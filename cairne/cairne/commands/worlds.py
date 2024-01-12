@@ -96,3 +96,13 @@ class DeleteWorld(Command):
 		self.datastore.save()
 
 		return generated_schema.DeleteEntityResponse()
+
+
+@dataclass
+class ListEntityTypes(Command):
+	def execute(self) -> worlds_schema.ListEntityTypesResponse:
+		entity_types = [
+			worlds_schema.EntityType(name=entity_type.value, label=entity_type.get_label())
+			for entity_type in spec.EntityType
+		]
+		return worlds_schema.ListEntityTypesResponse(entity_types=entity_types)

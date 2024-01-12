@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import styles from './world.module.scss';
 import { NavigationBar } from '../navigation-bar/navigation-bar';
-import { getWorld, deleteWorld } from '../../openrpg/client';
+import { getWorld, deleteWorld, listEntityTypes } from '../../openrpg/client';
 import * as openrpg from '../../openrpg/schema/schema';
 import React from 'react';
 import { useLocation } from 'react-router-dom';
@@ -32,7 +32,9 @@ export const World = ({ className }: WorldProps) => {
     // use a nested router for the children?
     const location = useLocation();
     const [world, setWorld] = React.useState<openrpg.GeneratedEntity>(createInitialWorld());
-    const [breadCrumb, setBreadCrumb] = React.useState<string[]>(['overview']);
+    // TODO: this should not have a 1 in the name
+    const [entityTypes, setEntityTypes] = React.useState<openrpg.EntityType1[]>([]);
+    // const [breadCrumb, setBreadCrumb] = React.useState<string[]>(['overview']);
     const navigate = useNavigate();
 
     const worldId = location.pathname.split('/')[2];
@@ -46,25 +48,42 @@ export const World = ({ className }: WorldProps) => {
         });
     }, [worldId]);
 
-    const onDelete = (response: openrpg.DeleteEntityResponse) => {
-        navigate('/worlds');
-    };
+    React.useEffect(() => {
+        listEntityTypes((response: openrpg.ListEntityTypesResponse) => {
+            setEntityTypes(
+                response.entity_types.filter((entityType) => entityType.name !== 'world')
+            );
+        });
+    }, []);
+
+    // console.log(
+    //     'names',
+    //     entityTypes.map((entityType) => entityType.name)
+    // );
 
     return (
         <div className={classNames(styles.root, className)}>
             <NavigationBar />
-            <nav>
+            {/* <nav>
                 <Link to="details">Details</Link> | <Link to="characters">Characters</Link> |{' '}
                 <Link to="items">Items</Link> | <Link to="resources">Resources</Link> |{' '}
                 <Link to="story_elements">Story Elements</Link> | <Link to="regions">Regions</Link>{' '}
                 | <Link to="crafting">Crafting</Link>
+            </nav> */}
+            <nav>
+                <Link to=".">Overview</Link>
+                {entityTypes &&
+                    entityTypes.map((entityType, index) => (
+                        <>
+                            <span> | </span>
+                            <Link key={entityType.name} to={'entities/' + entityType.name}>
+                                {entityType.label}
+                            </Link>
+                            {/* {index < entityTypes.length - 1 && ' | '} */}
+                        </>
+                    ))}
             </nav>
             {world.name}
-            <button onClick={() => deleteWorld(worldId, onDelete)}>Delete</button>
-            <ul>
-                <li>Created At: {world.created_at}</li>
-                <li>Updated At: {world.updated_at}</li>
-            </ul>
             <Outlet context={world} />
         </div>
     );

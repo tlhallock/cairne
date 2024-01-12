@@ -12,13 +12,17 @@ from cairne.schema.base import Response
 from pydantic import BaseModel, Field
 
 
-class GeneratedValueType(str, Enum):
-	GENERATED_STRING = "generated_string"
-	GENERATED_FLOAT = "generated_float"
-	GENERATED_INT = "generated_int"
-	GENERATED_BOOLEAN = "generated_boolean"
-	GENERATED_OBJECT = "generated_object"
-	GENERATED_LIST = "generated_list"
+class GeneratedValueEditor(str, Enum):
+	G_STRING = "string"
+	# Somehow, we need to know if this string is expected to be long.
+	#     - That information could also be used to calculate the expected number of tokens within a generation?
+	G_TEXT = "text"
+	G_FLOAT = "float"
+	G_INTEGER = "integer"
+	G_BOOLEAN = "boolean"
+	G_OBJECT = "object"
+	G_LIST = "list"
+	G_ENTITIES = "entities_dictionary"
 
 
 class GenerationHistory(BaseModel):
@@ -32,16 +36,20 @@ class GenerationState(BaseModel):
 	pass
 
 
-class GeneratedItem(BaseModel):
+class GeneratedField(BaseModel):
+	label: str = Field()
 	raw_value: str = Field()
 	value_js: str = Field()
-	display_path: List[str] = Field(default_factory=list)
-	value_type: GeneratedValueType = Field()
+	# display_path: List[str] = Field(default_factory=list)
+	value_type: GeneratedValueEditor = Field()
 	edit_path: spec.GeneratablePath = Field()
 	choices: Optional[List[str]] = Field(default=None)
 	validation_errors: List[str] = Field(default_factory=list)
-	# history
-	# all validations
+	children: Optional[List["GeneratedField"]] = Field(default_factory=list)
+	add_value_type: Optional[GeneratedValueEditor] = Field(default=None)
+
+	# TODO: history
+	# TODO: all validations
 
 
 class GeneratedEntity(BaseModel):
@@ -52,7 +60,7 @@ class GeneratedEntity(BaseModel):
 	updated_at: datetime.datetime = Field()
 	path: spec.GeneratablePath = Field()
 	js: str = Field(default=None)
-	fields: List[GeneratedItem] = Field()
+	fields: List[GeneratedField] = Field()
 
 
 class GeneratedEntityListItem(BaseModel):

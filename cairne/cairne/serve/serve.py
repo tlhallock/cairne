@@ -15,7 +15,10 @@ from flask_pydantic import validate
 from structlog import get_logger
 
 
-# Story idea: the last human
+# Story idea: the last human as ais take over
+# add editor settings (like include field in generation)
+# add a sort index to the lists
+# add options for generated values
 
 
 logger = get_logger(__name__)
@@ -169,6 +172,24 @@ def delete_world(world_id: uuid.UUID) -> generated_schema.DeleteEntityResponse:
 
 
 ##############################################################
+
+
+
+
+@app.route("/entity_types", methods=["GET", "OPTIONS"])
+@cross_origin(origins=["*"])
+@validate()
+def list_entity_types() -> worlds_schema.ListEntityTypesResponse:
+    logger.info("List entity types")
+    command = world_commands.ListEntityTypes(datastore=datastore, user="test")
+    response = command.execute()
+    return response
+    
+
+
+
+
+
 
 
 # @app.route('/world/<world_id>/characters/<character_id>', methods=['GET', 'OPTIONS'])
