@@ -8,6 +8,11 @@ import cairne.model.specification as spec
 import cairne.schema.generated as generated_schema
 import cairne.schema.worlds as worlds_schema
 from cairne.serve.data_store import Datastore
+import cairne.commands.generation as generate_commands
+import cairne.commands.generate.base as base_generate_commands
+import cairne.schema.generate as generate_schema
+import cairne.model.generation as generate_model
+import cairne.commands.generate.openai.generate as openai_generate
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS, cross_origin
@@ -180,15 +185,58 @@ def delete_world(world_id: uuid.UUID) -> generated_schema.DeleteEntityResponse:
 @cross_origin(origins=["*"])
 @validate()
 def list_entity_types() -> worlds_schema.ListEntityTypesResponse:
-    logger.info("List entity types")
-    command = world_commands.ListEntityTypes(datastore=datastore, user="test")
-    response = command.execute()
-    return response
-    
+	logger.info("List entity types")
+	command = world_commands.ListEntityTypes(datastore=datastore, user="test")
+	response = command.execute()
+	return response
+
+
+@app.route("/schema/entity/<entity_type>", methods=["GET", "OPTIONS"])
+@cross_origin(origins=["*"])
+@validate()
+def get_generation_schema(entity_type: str) -> worlds_schema.ListEntityTypesResponse:
+	logger.info("Get entity schema", entity_type=entity_type)
+	validated_entity_type = spec.EntityType.get(entity_type)
+	command = generate_commands.GetEntitySchema(datastore=datastore, user="test", entity_type=validated_entity_type)
+	response = command.execute()
+	return response
 
 
 
 
+def create_generate_command(
+	datastore: Datastore,
+	user: str,
+	request: generate_schema.GenerateRequest
+) -> base_generate_commands.BaseGenerate:
+	generation_builder = base_generate_commands.GenerationBuilder(request=request, user=user, datastore=datastore)
+	generation = generation_builder.create_generation()
+	kwargs = dict(
+		datastore=datastore,
+		user=user,
+		request=request,
+		generation=generation,
+		world=generation_builder.get_world(),
+		entity=generation_builder.get_entity(),
+		specification=generation_builder.get_specification(),
+	)
+	if generation.generator_model.generator_type == generate_model.GeneratorType.OPENAI:
+		return openai_generate.OpenAIGenerate(**kwargs)
+	else:
+		raise NotImplementedError(f"Unknown or not implemented generator type {generation.generator_model.generator_type}")
+
+
+# Descriptive path?
+@app.route("/generate", methods=["POST", "OPTIONS"])
+@cross_origin(origins=["*"])
+@validate()
+def generate(
+	body: generate_schema.GenerateRequest
+) -> generate_schema.GenerateResponse:
+	logger.info("Generate", body=body)
+	command = create_generate_command(datastore=datastore, user="test", request=body)
+	response = command.execute()
+	return response
 
 
 

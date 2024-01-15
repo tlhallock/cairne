@@ -112,3 +112,15 @@ class DeleteEntityRequest(BaseModel):
 
 class DeleteEntityResponse(Response):
 	pass
+
+
+class EntityGenerationField(BaseModel):
+    name: str = Field()
+
+
+class EntityGenerationSchema(BaseModel):
+	fields: List[EntityGenerationField] = Field()
+
+
+class GetEntitySchemaResponse(Response):
+	schema: EntityGenerationSchema = Field()

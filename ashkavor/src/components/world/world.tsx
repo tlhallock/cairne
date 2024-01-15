@@ -8,6 +8,20 @@ import { useLocation } from 'react-router-dom';
 import { Routes, Route, Link, Outlet } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
+export interface EntityLinkProps {
+    entityType: openrpg.EntityType1;
+}
+
+const EntityLink = ({ entityType }: EntityLinkProps) => {
+    return (
+        <>
+            <span> | </span>
+            <Link to={'entities/' + entityType.name}>{entityType.label}</Link>
+            {/* {index < entityTypes.length - 1 && ' | '} */}
+        </>
+    );
+};
+
 export interface WorldProps {
     className?: string;
 }
@@ -56,32 +70,14 @@ export const World = ({ className }: WorldProps) => {
         });
     }, []);
 
-    // console.log(
-    //     'names',
-    //     entityTypes.map((entityType) => entityType.name)
-    // );
-
     return (
         <div className={classNames(styles.root, className)}>
             <NavigationBar />
-            {/* <nav>
-                <Link to="details">Details</Link> | <Link to="characters">Characters</Link> |{' '}
-                <Link to="items">Items</Link> | <Link to="resources">Resources</Link> |{' '}
-                <Link to="story_elements">Story Elements</Link> | <Link to="regions">Regions</Link>{' '}
-                | <Link to="crafting">Crafting</Link>
-            </nav> */}
             <nav>
                 <Link to=".">Overview</Link>
-                {entityTypes &&
-                    entityTypes.map((entityType, index) => (
-                        <>
-                            <span> | </span>
-                            <Link key={entityType.name} to={'entities/' + entityType.name}>
-                                {entityType.label}
-                            </Link>
-                            {/* {index < entityTypes.length - 1 && ' | '} */}
-                        </>
-                    ))}
+                {entityTypes.map((entityType) => (
+                    <EntityLink key={entityType.name} entityType={entityType} />
+                ))}
             </nav>
             {world.name}
             <Outlet context={world} />

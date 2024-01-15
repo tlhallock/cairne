@@ -254,7 +254,8 @@ def parse_object(
 		kwargs["entity_id"] = uuid.UUID(dict_value["entity_id"])
 
 	if specification.parser.parser_name == spec.ParserName.ENTITY:
-		kwargs["entity_type"] = specification.entity_type
+		entity_specification = typing.cast(spec.EntitySpecification, specification)
+		kwargs["entity_type"] = entity_specification.entity_type
 		return gen.GeneratedEntity(**kwargs)
 	elif specification.parser.parser_name == spec.ParserName.OBJECT:
 		return gen.GeneratedObject(**kwargs)

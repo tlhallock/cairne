@@ -15,25 +15,30 @@ export type GenerationId = string;
 export type GenerationId1 = string;
 export type GenerationId2 = string;
 export type GenerationId3 = string;
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "ChatRole".
+ */
+export type ChatRole = 'system' | 'assistant' | 'user';
 export type WorldId1 = string;
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "cairne__model__specification__EntityType".
  */
 export type EntityType =
-  | "world"
-  | "character"
-  | "item"
-  | "resource"
-  | "region"
-  | "plot_stage"
-  | "dialogue"
-  | "tool"
-  | "vehicle"
-  | "building"
-  | "crafting_recipe"
-  | "crafting_location"
-  | "animal";
+    | 'world'
+    | 'character'
+    | 'item'
+    | 'resource'
+    | 'region'
+    | 'plot_stage'
+    | 'dialogue'
+    | 'tool'
+    | 'vehicle'
+    | 'building'
+    | 'crafting_recipe'
+    | 'crafting_location'
+    | 'animal';
 export type Name = string | null;
 export type EntityId1 = string;
 /**
@@ -43,23 +48,36 @@ export type Name1 = string;
 export type WorldId2 = string;
 export type EntityId2 = string;
 export type Name2 = string;
+export type Fields = EntityGenerationField[];
+export type Name3 = string;
 export type Label = string;
 export type TotalNumber = number;
-/**
- * This interface was referenced by `CairneSchema`'s JSON-Schema
- * via the `definition` "GenerationEndpoint".
- */
-export type GenerationEndpoint = "character" | "characters";
-export type EntityToGenerate = string | null;
+export type WorldId3 = string;
+export type EntityId3 = string;
+export type All = boolean | null;
+export type Fields1 = string[];
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "GeneratorType".
  */
-export type GeneratorType = "ollama" | "openai" | "hugging_face";
+export type GeneratorType = 'ollama' | 'openai' | 'hugging_face';
 export type GModelId = string;
+export type MaxTokens = number | null;
+export type Temperature = number | null;
+export type TopP = number | null;
+export type FrequencyPenalty = number | null;
+export type PresencePenalty = number | null;
+export type Seed = number | null;
+export type PromptMessages = GenerationChatMessage[] | null;
+export type Message = string;
+export type Instructions = Instruction[] | null;
+export type Message1 = string;
+export type GenerateJson = boolean;
+export type JsonSchema = string | null;
+export type Examples = string | null;
 export type GenerationId4 = string;
-export type EntityId3 = string;
-export type Name3 = string | null;
+export type EntityId4 = string;
+export type Name4 = string | null;
 export type ImageUri = string | null;
 export type CreatedAt = string;
 export type UpdatedAt = string;
@@ -72,58 +90,41 @@ export type ValueJs1 = string;
  * via the `definition` "GeneratedValueEditor".
  */
 export type GeneratedValueEditor =
-  | "string"
-  | "float"
-  | "integer"
-  | "boolean"
-  | "object"
-  | "list"
-  | "entities_dictionary";
+    | 'string'
+    | 'text'
+    | 'float'
+    | 'integer'
+    | 'boolean'
+    | 'object'
+    | 'list'
+    | 'entities_dictionary';
 export type Choices = string[] | null;
 export type ValidationErrors = string[];
 export type Children = GeneratedField[] | null;
-export type Fields = GeneratedField[];
-export type EntityId4 = string;
-export type Name4 = string | null;
+export type Fields2 = GeneratedField[];
+export type EntityId5 = string;
+export type Name5 = string | null;
 export type ImageUri1 = string | null;
 export type CreatedAt1 = string;
 export type UpdatedAt1 = string;
 export type GenerationId5 = string;
-/**
- * This interface was referenced by `CairneSchema`'s JSON-Schema
- * via the `definition` "GenerationType".
- */
-export type GenerationType = "text" | "image" | "audio";
+export type WorldId4 = string;
+export type EntityId6 = string;
 export type BeginTime = string;
 export type EndTime = string | null;
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "GenerationStatus".
  */
-export type GenerationStatus = "queued" | "in_progress" | "streaming" | "error" | "complete";
-/**
- * This interface was referenced by `CairneSchema`'s JSON-Schema
- * via the `definition` "MessageSourceRole".
- */
-export type MessageSourceRole = "system" | "user" | "assistant";
-export type Message = string;
-export type PromptMessages = GenerationMessage[];
-export type JsonSchema = string | null;
-export type MaxTokens = number | null;
-export type Temperature = number | null;
-export type TopP = number | null;
-export type FrequencyPenalty = number | null;
-export type PresencePenalty = number | null;
-export type InputTokens = number | null;
-export type OutputTokens = number | null;
+export type GenerationStatus = 'queued' | 'in_progress' | 'streaming' | 'error' | 'complete';
 export type GenerationId6 = string;
 export type BeginTime1 = string;
 export type EndTime1 = string | null;
-export type WorldId3 = string;
-export type EntityId5 = string | null;
-export type WorldId4 = string;
+export type WorldId5 = string;
+export type EntityId7 = string | null;
+export type WorldId6 = string;
 export type Entities = GeneratedEntityListItem[];
-export type Name5 = string;
+export type Name6 = string;
 export type Label2 = string;
 /**
  * List of entity types
@@ -134,8 +135,8 @@ export type ModelName = string;
 export type LoadedModels = LoadedModel[];
 export type ModelName1 = string;
 export type LoadedModelId = string;
-export type WorldId5 = string;
-export type WorldId6 = string;
+export type WorldId7 = string;
+export type WorldId8 = string;
 export type NewValueJs = string;
 export type LoadedModelId1 = string;
 /**
@@ -145,431 +146,483 @@ export type Id = string;
 /**
  * Name of the world
  */
-export type Name6 = string;
+export type Name7 = string;
 export type EntityTypeSummaries = EntityTypeSummary[];
 export type GenerationGoals = string[];
 
 export interface CairneSchema {
-  [k: string]: unknown;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "AppendElementRequest".
  */
 export interface AppendElementRequest {
-  world_id: WorldId;
-  value_js: ValueJs;
-  path: GeneratablePath;
-  [k: string]: unknown;
+    world_id: WorldId;
+    value_js: ValueJs;
+    path: GeneratablePath;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "GeneratablePath".
  */
 export interface GeneratablePath {
-  path_elements?: PathElements;
-  [k: string]: unknown;
+    path_elements?: PathElements;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "GeneratablePathElement".
  */
 export interface GeneratablePathElement {
-  key?: Key;
-  index?: Index;
-  entity_id?: EntityId;
-  [k: string]: unknown;
+    key?: Key;
+    index?: Index;
+    entity_id?: EntityId;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "AppendElementResponse".
  */
 export interface AppendElementResponse {
-  [k: string]: unknown;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "ApplyGenerationRequest".
  */
 export interface ApplyGenerationRequest {
-  generation_id: GenerationId;
-  [k: string]: unknown;
+    generation_id: GenerationId;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "ApplyGenerationResponse".
  */
 export interface ApplyGenerationResponse {
-  generation_id: GenerationId1;
-  [k: string]: unknown;
+    generation_id: GenerationId1;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "CancelGenerationRequest".
  */
 export interface CancelGenerationRequest {
-  generation_id: GenerationId2;
-  [k: string]: unknown;
+    generation_id: GenerationId2;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "CancelGenerationResponse".
  */
 export interface CancelGenerationResponse {
-  generation_id: GenerationId3;
-  [k: string]: unknown;
+    generation_id: GenerationId3;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "CreateEntityRequest".
  */
 export interface CreateEntityRequest {
-  world_id: WorldId1;
-  entity_type: EntityType;
-  name: Name;
-  [k: string]: unknown;
+    world_id: WorldId1;
+    entity_type: EntityType;
+    name: Name;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "CreateEntityResponse".
  */
 export interface CreateEntityResponse {
-  entity_id: EntityId1;
-  path: GeneratablePath;
-  [k: string]: unknown;
+    entity_id: EntityId1;
+    path: GeneratablePath;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "CreateWorldRequest".
  */
 export interface CreateWorldRequest {
-  name: Name1;
-  [k: string]: unknown;
+    name: Name1;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "DeleteEntityRequest".
  */
 export interface DeleteEntityRequest {
-  world_id: WorldId2;
-  entity_id: EntityId2;
-  [k: string]: unknown;
+    world_id: WorldId2;
+    entity_id: EntityId2;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "DeleteEntityResponse".
  */
 export interface DeleteEntityResponse {
-  [k: string]: unknown;
+    [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "EntityGenerationField".
+ */
+export interface EntityGenerationField {
+    name: Name2;
+    [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "EntityGenerationSchema".
+ */
+export interface EntityGenerationSchema {
+    fields: Fields;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "EntityTypeSummary".
  */
 export interface EntityTypeSummary {
-  name: Name2;
-  label: Label;
-  total_number: TotalNumber;
-  [k: string]: unknown;
+    name: Name3;
+    label: Label;
+    total_number: TotalNumber;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "GenerateRequest".
  */
 export interface GenerateRequest {
-  generation_endpoint: GenerationEndpoint;
-  entity_to_generate?: EntityToGenerate;
-  generator_model?: GeneratorModel;
-  [k: string]: unknown;
+    world_id: WorldId3;
+    entity_id?: EntityId3;
+    fields_to_generate?: TargetFields | null;
+    generator_model?: GeneratorModel | null;
+    parameters?: GenerationRequestParameters | null;
+    prompt_messages?: PromptMessages;
+    instructions?: Instructions;
+    json_structure?: JsonStructureRequest | null;
+    [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "TargetFields".
+ */
+export interface TargetFields {
+    all?: All;
+    fields?: Fields1;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "GeneratorModel".
  */
 export interface GeneratorModel {
-  generator_type: GeneratorType;
-  g_model_id: GModelId;
-  [k: string]: unknown;
-}
-/**
- * This interface was referenced by `CairneSchema`'s JSON-Schema
- * via the `definition` "GenerateResponse".
- */
-export interface GenerateResponse {
-  generation_id: GenerationId4;
-  [k: string]: unknown;
-}
-/**
- * This interface was referenced by `CairneSchema`'s JSON-Schema
- * via the `definition` "GeneratedEntity".
- */
-export interface GeneratedEntity {
-  entity_id: EntityId3;
-  name: Name3;
-  image_uri: ImageUri;
-  created_at: CreatedAt;
-  updated_at: UpdatedAt;
-  path: GeneratablePath;
-  js?: Js;
-  fields: Fields;
-  [k: string]: unknown;
-}
-/**
- * This interface was referenced by `CairneSchema`'s JSON-Schema
- * via the `definition` "GeneratedField".
- */
-export interface GeneratedField {
-  label: Label1;
-  raw_value: RawValue;
-  value_js: ValueJs1;
-  value_type: GeneratedValueEditor;
-  edit_path: GeneratablePath;
-  choices?: Choices;
-  validation_errors?: ValidationErrors;
-  children?: Children;
-  add_value_type?: GeneratedValueEditor | null;
-  [k: string]: unknown;
-}
-/**
- * This interface was referenced by `CairneSchema`'s JSON-Schema
- * via the `definition` "GeneratedEntityListItem".
- */
-export interface GeneratedEntityListItem {
-  entity_id: EntityId4;
-  name: Name4;
-  image_uri: ImageUri1;
-  created_at: CreatedAt1;
-  updated_at: UpdatedAt1;
-  path: GeneratablePath;
-  [k: string]: unknown;
-}
-/**
- * This interface was referenced by `CairneSchema`'s JSON-Schema
- * via the `definition` "Generation".
- */
-export interface Generation {
-  generation_id?: GenerationId5;
-  endpoint: GenerationEndpoint;
-  generation_type: GenerationType;
-  generator_model: GeneratorModel;
-  begin_time?: BeginTime;
-  end_time?: EndTime;
-  status?: GenerationStatus & string;
-  prompt_messages?: PromptMessages;
-  json_schema?: JsonSchema;
-  parameters?: GenerationRequestParameters;
-  input_tokens?: InputTokens;
-  output_tokens?: OutputTokens;
-  [k: string]: unknown;
-}
-/**
- * This interface was referenced by `CairneSchema`'s JSON-Schema
- * via the `definition` "GenerationMessage".
- */
-export interface GenerationMessage {
-  source: MessageSourceRole;
-  message: Message;
-  [k: string]: unknown;
+    generator_type: GeneratorType;
+    g_model_id: GModelId;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "GenerationRequestParameters".
  */
 export interface GenerationRequestParameters {
-  max_tokens?: MaxTokens;
-  temperature?: Temperature;
-  top_p?: TopP;
-  frequency_penalty?: FrequencyPenalty;
-  presence_penalty?: PresencePenalty;
-  [k: string]: unknown;
+    max_tokens?: MaxTokens;
+    temperature?: Temperature;
+    top_p?: TopP;
+    frequency_penalty?: FrequencyPenalty;
+    presence_penalty?: PresencePenalty;
+    seed?: Seed;
+    [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "GenerationChatMessage".
+ */
+export interface GenerationChatMessage {
+    role: ChatRole;
+    message: Message;
+    [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "Instruction".
+ */
+export interface Instruction {
+    message: Message1;
+    [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "JsonStructureRequest".
+ */
+export interface JsonStructureRequest {
+    generate_json?: GenerateJson;
+    json_schema?: JsonSchema;
+    examples?: Examples;
+    [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "GenerateResponse".
+ */
+export interface GenerateResponse {
+    generation_id: GenerationId4;
+    [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "GeneratedEntity".
+ */
+export interface GeneratedEntity {
+    entity_id: EntityId4;
+    name: Name4;
+    image_uri: ImageUri;
+    created_at: CreatedAt;
+    updated_at: UpdatedAt;
+    path: GeneratablePath;
+    js?: Js;
+    fields: Fields2;
+    [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "GeneratedField".
+ */
+export interface GeneratedField {
+    label: Label1;
+    raw_value: RawValue;
+    value_js: ValueJs1;
+    value_type: GeneratedValueEditor;
+    edit_path: GeneratablePath;
+    choices?: Choices;
+    validation_errors?: ValidationErrors;
+    children?: Children;
+    add_value_type?: GeneratedValueEditor | null;
+    [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "GeneratedEntityListItem".
+ */
+export interface GeneratedEntityListItem {
+    entity_id: EntityId5;
+    name: Name5;
+    image_uri: ImageUri1;
+    created_at: CreatedAt1;
+    updated_at: UpdatedAt1;
+    path: GeneratablePath;
+    [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "Generation".
+ */
+export interface Generation {
+    generation_id: GenerationId5;
+    world_id: WorldId4;
+    entity_id: EntityId6;
+    entity_type: EntityType;
+    begin_time: BeginTime;
+    end_time: EndTime;
+    status: GenerationStatus;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "GenerationHistory".
  */
 export interface GenerationHistory {
-  [k: string]: unknown;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "GenerationListItem".
  */
 export interface GenerationListItem {
-  generation_id: GenerationId6;
-  begin_time: BeginTime1;
-  end_time: EndTime1;
-  status: GenerationStatus;
-  [k: string]: unknown;
+    generation_id: GenerationId6;
+    begin_time: BeginTime1;
+    end_time: EndTime1;
+    status: GenerationStatus;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "GenerationState".
  */
 export interface GenerationState {
-  [k: string]: unknown;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "GetEntityRequest".
  */
 export interface GetEntityRequest {
-  world_id: WorldId3;
-  entity_id?: EntityId5;
-  [k: string]: unknown;
+    world_id: WorldId5;
+    entity_id?: EntityId7;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "GetEntityResponse".
  */
 export interface GetEntityResponse {
-  entity: GeneratedEntity;
-  [k: string]: unknown;
+    entity: GeneratedEntity;
+    [k: string]: unknown;
+}
+/**
+ * This interface was referenced by `CairneSchema`'s JSON-Schema
+ * via the `definition` "GetEntitySchemaResponse".
+ */
+export interface GetEntitySchemaResponse {
+    schema: EntityGenerationSchema;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "GetGenerationResponse".
  */
 export interface GetGenerationResponse {
-  generation: Generation;
-  [k: string]: unknown;
+    generation: Generation;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "ListEntitiesRequest".
  */
 export interface ListEntitiesRequest {
-  world_id: WorldId4;
-  entity_type: EntityType;
-  [k: string]: unknown;
+    world_id: WorldId6;
+    entity_type: EntityType;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "ListEntitiesResponse".
  */
 export interface ListEntitiesResponse {
-  entities?: Entities;
-  [k: string]: unknown;
+    entities?: Entities;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "ListEntityTypesResponse".
  */
 export interface ListEntityTypesResponse {
-  entity_types: EntityTypes;
-  [k: string]: unknown;
+    entity_types: EntityTypes;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "cairne__schema__worlds__EntityType".
  */
 export interface EntityType1 {
-  name: Name5;
-  label: Label2;
-  [k: string]: unknown;
+    name: Name6;
+    label: Label2;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "ListGenerationsResponse".
  */
 export interface ListGenerationsResponse {
-  generations?: Generations;
-  [k: string]: unknown;
+    generations?: Generations;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "ListLoadedModelsRequest".
  */
 export interface ListLoadedModelsRequest {
-  [k: string]: unknown;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "ListLoadedModelsResponse".
  */
 export interface ListLoadedModelsResponse {
-  loaded_models: LoadedModels;
-  [k: string]: unknown;
+    loaded_models: LoadedModels;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "LoadedModel".
  */
 export interface LoadedModel {
-  model_name: ModelName;
-  [k: string]: unknown;
+    model_name: ModelName;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "LoadModelRequest".
  */
 export interface LoadModelRequest {
-  model_name: ModelName1;
-  [k: string]: unknown;
+    model_name: ModelName1;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "LoadModelResponse".
  */
 export interface LoadModelResponse {
-  loaded_model_id: LoadedModelId;
-  [k: string]: unknown;
+    loaded_model_id: LoadedModelId;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "RemoveValueRequest".
  */
 export interface RemoveValueRequest {
-  world_id: WorldId5;
-  path: GeneratablePath;
-  [k: string]: unknown;
+    world_id: WorldId7;
+    path: GeneratablePath;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "RemoveValueResponse".
  */
 export interface RemoveValueResponse {
-  [k: string]: unknown;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "ReplaceRequest".
  */
 export interface ReplaceRequest {
-  world_id: WorldId6;
-  new_value_js: NewValueJs;
-  path: GeneratablePath;
-  [k: string]: unknown;
+    world_id: WorldId8;
+    new_value_js: NewValueJs;
+    path: GeneratablePath;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "ReplaceResponse".
  */
 export interface ReplaceResponse {
-  [k: string]: unknown;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "UnloadModelRequest".
  */
 export interface UnloadModelRequest {
-  loaded_model_id: LoadedModelId1;
-  [k: string]: unknown;
+    loaded_model_id: LoadedModelId1;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "UnloadModelResponse".
  */
 export interface UnloadModelResponse {
-  [k: string]: unknown;
+    [k: string]: unknown;
 }
 /**
  * This interface was referenced by `CairneSchema`'s JSON-Schema
  * via the `definition` "WorldSummary".
  */
 export interface WorldSummary {
-  id: Id;
-  name: Name6;
-  entity_type_summaries: EntityTypeSummaries;
-  generation_goals: GenerationGoals;
-  [k: string]: unknown;
+    id: Id;
+    name: Name7;
+    entity_type_summaries: EntityTypeSummaries;
+    generation_goals: GenerationGoals;
+    [k: string]: unknown;
 }

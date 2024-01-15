@@ -118,3 +118,37 @@ export const deleteEntity = (
         .then((r) => onDelete(r.data))
         .catch(onError);
 };
+
+export const getGenerationSchema = (
+    worldId: openrpg.WorldId,
+    entityType: openrpg.EntityType,
+    onSchema: (response: openrpg.GetEntitySchemaResponse) => void,
+    onError: (error: Error) => void = (error: Error) => console.log(error)
+) => {
+    axios
+        .get('/schema/entity/' + entityType)
+        .then((r) => onSchema(r.data))
+        .catch(onError);
+};
+
+export const structuredGenerate = (
+    generateRequest: openrpg.GenerateRequest,
+    onGenerated: (response: openrpg.GenerateResponse) => void,
+    onError: (error: Error) => void = (error: Error) => console.log(error)
+) => {
+    axios
+        .post('/generate', generateRequest, { headers: { 'Content-Type': 'application/json' } })
+        .then((r) => onGenerated(r.data))
+        .catch(onError);
+};
+
+export const getGeneration = (
+    generationId: openrpg.GenerationId,
+    onStatus: (response: openrpg.GetGenerationResponse) => void,
+    onError: (error: Error) => void = (error: Error) => console.log(error)
+) => {
+    axios
+        .get('/generate/' + generationId)
+        .then((r) => onStatus(r.data))
+        .catch(onError);
+};

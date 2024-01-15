@@ -143,7 +143,7 @@ class GeneratedString(GeneratedValue):
 	parsed: Optional[str] = Field(default=None)
 
 	def is_generated(self) -> bool:
-		return self.parsed is not None
+		return self.parsed is not None and len(self.parsed) > 0
 
 
 class GeneratedFloat(GeneratedValue):

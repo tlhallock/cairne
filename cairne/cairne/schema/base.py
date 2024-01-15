@@ -30,8 +30,7 @@ def generate_json_schema():
 	import cairne.schema.loaded_models
 	import cairne.schema.worlds
 
-	models = [
-		cairne.schema.edits.AppendElementRequest,
+	models = [        cairne.schema.edits.AppendElementRequest,
         cairne.schema.edits.AppendElementResponse,
         cairne.schema.edits.RemoveValueRequest,
         cairne.schema.edits.RemoveValueResponse,
@@ -43,13 +42,17 @@ def generate_json_schema():
         cairne.schema.generate.CancelGenerationResponse,
         cairne.schema.generate.GenerateRequest,
         cairne.schema.generate.GenerateResponse,
+        cairne.schema.generate.Generation,
         cairne.schema.generate.GenerationListItem,
         cairne.schema.generate.GetGenerationResponse,
+        cairne.schema.generate.JsonStructureRequest,
         cairne.schema.generate.ListGenerationsResponse,
         cairne.schema.generated.CreateEntityRequest,
         cairne.schema.generated.CreateEntityResponse,
         cairne.schema.generated.DeleteEntityRequest,
         cairne.schema.generated.DeleteEntityResponse,
+        cairne.schema.generated.EntityGenerationField,
+        cairne.schema.generated.EntityGenerationSchema,
         cairne.schema.generated.GeneratedEntity,
         cairne.schema.generated.GeneratedEntityListItem,
         cairne.schema.generated.GeneratedField,
@@ -57,6 +60,7 @@ def generate_json_schema():
         cairne.schema.generated.GenerationState,
         cairne.schema.generated.GetEntityRequest,
         cairne.schema.generated.GetEntityResponse,
+        cairne.schema.generated.GetEntitySchemaResponse,
         cairne.schema.generated.ListEntitiesRequest,
         cairne.schema.generated.ListEntitiesResponse,
         cairne.schema.loaded_models.ListLoadedModelsRequest,
@@ -70,7 +74,7 @@ def generate_json_schema():
         cairne.schema.worlds.EntityType,
         cairne.schema.worlds.EntityTypeSummary,
         cairne.schema.worlds.ListEntityTypesResponse,
-        cairne.schema.worlds.WorldSummary,
+        cairne.schema.worlds.WorldSummary
         
         # cairne.schema.generated.GeneratedValueEditor,
 	]

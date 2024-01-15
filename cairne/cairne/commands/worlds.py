@@ -57,7 +57,6 @@ class ListWorlds(Command):
 			for world in self.datastore.worlds.values()
 			if world.deletion is None
 		]
-		logger.info("Returning worlds", entities=entities)
 		response = generated_schema.ListEntitiesResponse(entities=entities)
 		return response
 

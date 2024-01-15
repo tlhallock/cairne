@@ -7,6 +7,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
 
+
+import random
 import cairne.model.calls as calls
 import cairne.parsing.parse_incomplete_json as parse_incomplete
 from pydantic import BaseModel, Field
@@ -133,6 +135,13 @@ class EntityType(str, Enum):
 		else:
 			raise NotImplementedError(f"Invalid entity type: {self}")
 
+	@staticmethod
+	def get(name: str) -> "EntityType":
+		for entity_type in EntityType:
+			if entity_type.value == name:
+				return entity_type
+		raise ValueError(f"Invalid entity type: {name}")
+
 	def get_field_name(self) -> str:
 		return self.value + "s"
 
@@ -144,7 +153,7 @@ class EntityType(str, Enum):
 			]
 		)
 
-	def get_specification(self) -> "GeneratableSpecification":
+	def get_specification(self) -> "EntitySpecification":
 		from cairne.model.world_spec import WORLD
 
 		return typing.cast(
@@ -210,35 +219,100 @@ class OneOfLiteralValidator(ValidatorSpecification):
 	options: List[Tuple[GenerationResult, Set[str]]] = Field(default_factory=list)
 
 
+class EditorName(str, Enum):
+	LONG_STRING = "LONG_STRING"
+	SHORT_STRING = "short_string"
+	NUMBER_INPUT = "number_input"
+	BOOLEAN_INPUT = "boolean_input"
+	ENUMERATED = "enumerated"
+
 
 class EditorSpecification(BaseModel):
-    # Maybe this should be one of generated_schema.GeneratedValueEditor...
-    editor_name: str = Field()
+	# Maybe this should be one of generated_schema.GeneratedValueEditor...
+	editor_name: str = Field()
+	# TODO: Create instructions for the add to list method, somehow
+
+
+class GenerationSpecification(BaseModel):
+	instructions: List[str] = Field(default_factory=list)
+	
+	expected_num_tokens: Optional[int] = Field(default=None)
+	num_examples: Optional[int] = Field(default=None)
+ 
+ 
+ 	# example_json_values: Optional[List[str]] = Field(default=None)
+	# Can this be generated from pydantic?
+	# json_schema: Dict[str, str] = Field(default_factory=dict)
+
+	
+	# TODO: move this somewhere where it can accept fields: generate_model.TargetFields and world
+	# def create_json_schema(self, root_fields: List[str]) -> str:
+	# 	schema = {}
+	# 	for field in root_fields:
+	# 		if field not in self.json_schema:
+	# 			logger.warning(f"Field {field} not found in json schema")
+	# 			continue
+	# 		schema[field] = self.json_schema[field]
+	# 	return json.dumps(schema, indent=2)
 
 
 class GeneratableSpecification(BaseModel):
 	parser: ParserSpecification = Field()
 	validators: List[ValidatorSpecification] = Field(default_factory=list)
+	generation: GenerationSpecification = Field(default_factory=lambda: GenerationSpecification())
+	# Options for how to add to a list
+
+	def create_example(self) -> Any:
+		raise NotImplementedError()
  
 	def get(self, path: GeneratablePath, path_index: int) -> "GeneratableSpecification":
 		raise NotImplementedError()
 
+	def create_schema(self) -> str:
+		# TODO
+		return ""
+
+
 
 class ValueSpecification(GeneratableSpecification):
-	@classmethod
-	def create_spec(
-		cls, parser_name: ParserName, required: bool = False
-	) -> "ValueSpecification":
-		return ValueSpecification(
-			parser=ParserSpecification(parser_name=parser_name),
-			validators=[ValidatorSpecification(validator_name=ValidatorName.REQUIRED)]
-			if required
-			else [],
-		)
+	editor: EditorSpecification = Field()
+ 
+	# @classmethod
+	# def create_spec(
+	# 	cls,
+  	# 	parser_name: ParserName,
+	# 	required: bool = False,
+	#  	example_json_values: Optional[List[str]] = None,
+	# 	# editor_name: EditorName = EditorName.TEXT_AREA,
+	# ) -> "ValueSpecification":
+	# 	return ValueSpecification(
+	# 		parser=ParserSpecification(parser_name=parser_name),
+	# 		generation=GenerationSpecification(
+	# 			example_json_values=example_json_values
+	# 		) if example_json_values is not None else GenerationSpecification(),
+	# 		validators=[ValidatorSpecification(validator_name=ValidatorName.REQUIRED)]
+	# 		if required
+	# 		else [],
+	# 	)
 
-	@classmethod
-	def create_string_value(cls, required: bool = False) -> "ValueSpecification":
-		return cls.create_spec(parser_name=ParserName.STRING, required=required)
+	# @classmethod
+	# def create_string_value(cls, required: bool = False, example_json_values: Optional[List[str]] = None) -> "ValueSpecification":
+	# 	return cls.create_spec(parser_name=ParserName.STRING, required=required, example_json_values=example_json_values)
+
+	def create_example(self) -> Any:
+		if self.parser.parser_name == ParserName.STRING:
+			return "Example string"
+		elif self.parser.parser_name == ParserName.FLOAT:
+			return 29.4
+		elif self.parser.parser_name == ParserName.INTEGER:
+			return 13
+		elif self.parser.parser_name == ParserName.BOOLEAN:
+			if random.random() < 0.5:
+				return True
+			else:
+				return False
+		else:
+			raise NotImplementedError(f"Unknown parser name: {self.parser.parser_name}")
 
 	def get(self, path: GeneratablePath, path_index: int) -> "GeneratableSpecification":
 		if path_index != len(path.path_elements):
@@ -255,6 +329,12 @@ class ObjectSpecification(GeneratableSpecification):
 		default_factory=lambda: ParserSpecification(parser_name=ParserName.OBJECT)
 	)
 	children: Dict[str, GeneratableSpecification] = Field(default=dict)
+ 
+	def create_example(self) -> Any:
+		example = {}
+		for key, child in self.children.items():
+			example[key] = child.create_example()
+		return example
  
 	def get(self, path: GeneratablePath, path_index: int) -> "GeneratableSpecification":
 		if path_index == len(path.path_elements):
@@ -286,13 +366,19 @@ class ListSpecification(GeneratableSpecification):
 		default_factory=lambda: ParserSpecification(parser_name=ParserName.LIST)
 	)
 	element_specification: GeneratableSpecification
+ 
+	def create_example(self) -> Any:
+		num_examples = self.generation.num_examples
+		if num_examples is None:
+			num_examples = 2
+		return [self.element_specification.create_example() for _ in range(num_examples)]
 
-	@classmethod
-	def create_list_of_strings(cls) -> "ListSpecification":
-		return ListSpecification(
-			# parser=ParserSpecification(parser_name=ParserName.STRING),
-			element_specification=ValueSpecification.create_string_value()
-		)
+	# @classmethod
+	# def create_list_of_strings(cls) -> "ListSpecification":
+	# 	return ListSpecification(
+	# 		# parser=ParserSpecification(parser_name=ParserName.STRING),
+	# 		element_specification=ValueSpecification.create_string_value()
+	# 	)
  
 	def get(self, path: GeneratablePath, path_index: int) -> "GeneratableSpecification":
 		if path_index == len(path.path_elements):

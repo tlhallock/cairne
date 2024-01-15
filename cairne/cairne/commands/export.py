@@ -13,6 +13,8 @@ import json
 import typing
 from typing import List, Optional, Union
 from cairne.model.world_spec import WORLD
+import cairne.model.generation as generate_model
+import cairne.schema.generate as generate_schema
 
 
 # def export_world(world: generated_model.GeneratedEntity) -> worlds_schema.World:
@@ -267,6 +269,41 @@ def export_generated_entity(
 		fields=fields,
 	)
 
+
+def export_generation_list_item(generation: generate_model.Generation) -> generate_schema.GenerationListItem:
+	return generate_schema.GenerationListItem(
+		generation_id=generation.generation_id,
+		begin_time=generation.begin_time,
+		end_time=generation.end_time,
+		status=generation.status,
+	)
+
+
+def export_generation(generation: generate_model.Generation) -> generate_schema.Generation:
+	return generate_schema.Generation(
+		generation_id=generation.generation_id,
+		begin_time=generation.begin_time,
+		end_time=generation.end_time,
+		status=generation.status,
+		world_id=generation.world_id,
+		entity_id=generation.entity_id,
+		entity_type=generation.entity_type,
+	)
+
+
+def export_entity_specification_field(name: str, specification: spec.EntitySpecification) -> generated_schema.EntityGenerationField:
+	return generated_schema.EntityGenerationField(
+		name=name,
+	)
+
+
+def export_entity_specification(specification: spec.EntitySpecification) -> generated_schema.EntityGenerationSchema:
+	return generated_schema.EntityGenerationSchema(
+		fields=[
+			export_entity_specification_field(name, specification)
+			for name, specification in specification.children.items()
+		],
+	)
 
 # def export_generation(path: generated_model.GeneratablePath, generated_entity: generated_model.GeneratedEntity) -> generated_schema.GeneratedEntity:
 #     return generated_schema.GeneratedEntity(

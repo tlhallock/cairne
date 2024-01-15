@@ -3,15 +3,27 @@ import styles from './entity-editor.module.scss';
 import { useLocation, useNavigate } from 'react-router-dom';
 import * as openrpg from '../../openrpg/schema/schema';
 import React from 'react';
-import { getEntity, deleteEntity } from '../../openrpg/client';
+import { getEntity, deleteEntity, structuredGenerate } from '../../openrpg/client';
+import { StructuredGenerationSettings } from '../structured-generation-settings/structured-generation-settings';
+
+import * as generation from '../../openrpg/generation';
+import { StructuredGenerationField } from '../structured-generation-field/structured-generation-field';
+import { GenerateStatus } from '../generate-status/generate-status';
+
+const SPLITTER_STYLES = {
+    width: '90%',
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+};
 
 const COMMON_STYLES = {
     padding: '5px',
     margin: '5px',
-    width: '90%',
+    width: '100%',
     display: 'grid',
     gridTemplateColumns: '1fr 1fr 1fr',
 };
+
 const FIELD_STYLES = {
     ...COMMON_STYLES,
     // border: '1px solid red',
@@ -229,6 +241,10 @@ export const EntityEditor = ({ className }: EntityEditorProps) => {
     const navigate = useNavigate();
     const [entity, setEntity] = React.useState<openrpg.GeneratedEntity>();
     const [refreshCounter, setRefreshCounter] = React.useState<number>(0);
+    const [generatorState, setGeneratorState] = React.useState<generation.GenerationState>(
+        generation.DEFAULT_GENERATION_STATE
+    );
+    const [generationId, setGenerationId] = React.useState<string>();
 
     const worldId = location.pathname.split('/')[2];
     const entityType = location.pathname.split('/')[4];
@@ -255,6 +271,29 @@ export const EntityEditor = ({ className }: EntityEditorProps) => {
         navigate('/world/' + worldId + '/entities/' + entityType);
     };
 
+    const generate = () => {
+        const generateRequest: openrpg.GenerateRequest = {
+            world_id: worldId,
+            entity_id: entityId,
+            /*
+            world_id: uuid.UUID = Field()
+	        entity_id: uuid.UUID = Field(default=None)
+	        fields_to_generate: Optional[generation_model.TargetFields] = Field(default=None)
+
+	        generator_model: Optional[generation_model.GeneratorModel] = Field(default=None)
+	        parameters: Optional[generation_model.GenerationRequestParameters] = Field(default=None)
+            
+	        prompt_messages: Optional[List[generation_model.GenerationChatMessage]] = Field(default=None)
+	        instructions: Optional[List[generation_model.Instruction]] = Field(default=None)
+	        json_structure: Optional[JsonStructureRequest] = Field(default=None)
+            */
+        };
+
+        structuredGenerate(generateRequest, (response: openrpg.GenerateResponse) => {
+            setGenerationId(response.generation_id);
+        });
+    };
+
     return (
         <div className={classNames(styles.root, className)}>
             <button onClick={() => navigate('/world/' + worldId + '/entities/' + entityType)}>
@@ -262,21 +301,45 @@ export const EntityEditor = ({ className }: EntityEditorProps) => {
             </button>
             <button onClick={() => deleteEntity(worldId, entityId, onDelete)}>Delete</button>
             <br />
-            <ul>
-                <li>
-                    <div style={HEADER_STYLES}>
-                        <label>Field</label>
-                        <label>Current value</label>
-                        <label>Updates</label>
-                    </div>
-                </li>
-                {entity?.fields?.map((field) => (
-                    <li key={field.label}>
-                        <Field field={field} onEdit={onEdit} />
-                    </li>
-                ))}
-            </ul>
             {entity?.name || entity?.entity_id}
+            <br />
+            {generationId && <GenerateStatus generationId={generationId} />}
+            <div style={SPLITTER_STYLES}>
+                <StructuredGenerationSettings
+                    generationState={generatorState}
+                    setGenerationState={setGeneratorState}
+                />
+                <div>
+                    {/* TODO: add disabled field */}
+                    <button onClick={generate}>Generate!</button>
+                </div>
+            </div>
+            <div style={SPLITTER_STYLES}>
+                <div style={HEADER_STYLES}>
+                    <label>Field</label>
+                    <label>Current value</label>
+                    <label>Updates</label>
+                </div>
+            </div>
+            {entity?.fields?.map((field) => (
+                <li key={field.label} style={SPLITTER_STYLES}>
+                    <Field field={field} onEdit={onEdit} />
+                    <StructuredGenerationField
+                        generatedField={field}
+                        generationState={generatorState}
+                        setGenerationState={setGeneratorState}
+                    />
+                </li>
+            ))}
         </div>
     );
 };
+
+// Want to set the language model
+// The system prompt
+// which instructions to include
+
+// free form editor
+//      edit previous messages
+//
+// structured editor
