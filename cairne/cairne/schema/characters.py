@@ -3,9 +3,10 @@ import uuid
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
+from pydantic import BaseModel, Field
+
 import cairne.model.generated as generated
 from cairne.schema.base import Response
-from pydantic import BaseModel, Field
 
 # class GenerationStateField(BaseModel):
 #     name: str

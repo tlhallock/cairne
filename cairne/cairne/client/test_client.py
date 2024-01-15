@@ -1,12 +1,13 @@
 import json
 from contextlib import contextmanager
-from typing import Any, List, Optional, Union, Generator
+from typing import Any, Generator, List, Optional, Union
 
-import cairne.schema.worlds as worlds_schema
-import cairne.schema.generated as generated_schema
-import cairne.model.specification as spec
 import requests
 from structlog import get_logger
+
+import cairne.model.specification as spec
+import cairne.schema.generated as generated_schema
+import cairne.schema.worlds as worlds_schema
 
 logger = get_logger(__name__)
 

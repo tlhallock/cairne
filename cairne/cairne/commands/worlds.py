@@ -4,6 +4,8 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Optional, Tuple
 
+from structlog import get_logger
+
 import cairne.commands.export as export
 import cairne.model.character as characters
 import cairne.model.generated as generated_model
@@ -13,8 +15,6 @@ import cairne.schema.generated as generated_schema
 import cairne.schema.worlds as worlds_schema
 from cairne.commands.base import Command
 from cairne.model.world_spec import WORLD
-from structlog import get_logger
-
 
 logger = get_logger(__name__)
 

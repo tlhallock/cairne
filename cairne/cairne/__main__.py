@@ -2,6 +2,7 @@ import logging
 import sys
 
 import structlog
+
 from cairne.serve.serve import serve
 
 if __name__ == "__main__":

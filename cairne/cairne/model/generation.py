@@ -1,18 +1,18 @@
 import datetime
 import json
+import string
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import cairne.model.calls as calls
-import cairne.parsing.parse_incomplete_json as parse_incomplete
 from pydantic import BaseModel, Field
 from structlog import get_logger
-import string
-import cairne.model.specification as spec
 
+import cairne.model.calls as calls
+import cairne.model.specification as spec
+import cairne.parsing.parse_incomplete_json as parse_incomplete
 
 # TODO: rename this file to generate?
 

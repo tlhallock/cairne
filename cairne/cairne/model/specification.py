@@ -1,5 +1,6 @@
 import datetime
 import json
+import random
 import typing
 import uuid
 from contextlib import contextmanager
@@ -7,13 +8,11 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
 
-
-import random
-import cairne.model.calls as calls
-import cairne.parsing.parse_incomplete_json as parse_incomplete
 from pydantic import BaseModel, Field
 from structlog import get_logger
 
+import cairne.model.calls as calls
+import cairne.parsing.parse_incomplete_json as parse_incomplete
 
 logger = get_logger(__name__)
 

@@ -2,10 +2,11 @@ import datetime
 import uuid
 from typing import Any, Dict, List, Optional, Union
 
+from pydantic import BaseModel, Field
+
 import cairne.model.calls as calls
 import cairne.model.character as chars
 import cairne.model.generated as gen
-from pydantic import BaseModel, Field
 
 # class World(BaseModel):
 #     world_id: uuid.UUID = Field(default_factory=uuid.uuid4)

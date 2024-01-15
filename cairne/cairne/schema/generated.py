@@ -3,13 +3,14 @@ import uuid
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
+from pydantic import BaseModel, Field
+
 import cairne.model.generated as generated
 import cairne.model.generated as generated_model
 import cairne.model.generation as generation_model
 import cairne.model.specification as spec
 import cairne.schema.edits as edits_schema
 from cairne.schema.base import Response
-from pydantic import BaseModel, Field
 
 
 class GeneratedValueEditor(str, Enum):

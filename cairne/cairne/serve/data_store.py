@@ -3,10 +3,11 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Union
 
-import cairne.model.generated as model_generated
 from flask_pydantic import validate
 from pydantic import BaseModel, Field
 from structlog import get_logger
+
+import cairne.model.generated as model_generated
 
 SAVE_PATH = "output/datastore.json"
 

@@ -7,12 +7,13 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+from pydantic import BaseModel, Field
+from structlog import get_logger
+
 import cairne.model.calls as calls
 import cairne.model.generated as gen
 import cairne.model.specification as spec
 import cairne.parsing.parse_incomplete_json as parse_incomplete
-from pydantic import BaseModel, Field
-from structlog import get_logger
 
 logger = get_logger(__name__)
 

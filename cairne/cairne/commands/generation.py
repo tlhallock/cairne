@@ -6,15 +6,14 @@ from typing import Optional
 import cairne.commands.export as export
 import cairne.model.character as characters
 import cairne.model.generation as generation_model
+import cairne.model.specification as spec
 import cairne.model.world as worlds
 import cairne.schema.characters as characters_schema
 import cairne.schema.generate as generate_schema
 import cairne.schema.generated as generated_schema
 import cairne.schema.worlds as worlds_schema
 from cairne.commands.base import Command
-import cairne.model.specification as spec
 from cairne.model.world_spec import WORLD
-
 
 
 @dataclass

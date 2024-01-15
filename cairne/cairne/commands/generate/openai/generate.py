@@ -1,31 +1,29 @@
 
-from pydantic import BaseModel, Field
-from typing import Optional, List, Dict, Any, Union, Callable, Type, Literal, Tuple
-import cairne.model.generation as generate_model
-import cairne.model.generated as generated_model
-import cairne.schema.generate as generate_schema
-import cairne.model.specification as spec
+import datetime
 import json
 import sys
-from structlog import get_logger
-import datetime
-import datetime
+import threading
+import typing
 import uuid
 from dataclasses import dataclass, field
-from typing import Optional
-import typing
+from typing import (Any, Callable, Dict, List, Literal, Optional, Tuple, Type,
+                    Union)
+
+import openai
+from pydantic import BaseModel, Field
+from structlog import get_logger
 
 import cairne.commands.export as export
 import cairne.model.character as characters
+import cairne.model.generated as generated_model
+import cairne.model.generation as generate_model
 import cairne.model.generation as generation_model
+import cairne.model.specification as spec
 import cairne.model.world as worlds
 import cairne.schema.characters as characters_schema
 import cairne.schema.generate as generate_schema
 import cairne.schema.worlds as worlds_schema
 from cairne.commands.base import Command
-import threading
-import datetime
-import openai
 from cairne.commands.generate.base import BaseGenerate
 
 logger = get_logger()

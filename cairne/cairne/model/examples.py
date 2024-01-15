@@ -1,10 +1,6 @@
-import cairne.model.specification as spec
 import cairne.model.generated as generated_model
+import cairne.model.specification as spec
 from cairne.model.world_spec import WORLD
-
-
-
-
 
 # class Examples:
 #     @staticmethod
