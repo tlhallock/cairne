@@ -15,6 +15,7 @@ import cairne.schema.generated as generated_schema
 import cairne.schema.worlds as worlds_schema
 from cairne.commands.base import Command
 from cairne.model.world_spec import WORLD
+import cairne.model.validation as validation
 
 logger = get_logger(__name__)
 
@@ -26,20 +27,25 @@ class CreateWorld(Command):
 	request: worlds_schema.CreateWorldRequest
 
 	def execute(self) -> generated_schema.CreateEntityResponse:
-		logger.info("Number of worlds", length=len(self.datastore.worlds))
 		context = parsing.ParseContext(
 			source=generated_model.GenerationSource(
 				source_type=generated_model.GenerationSourceType.DEFAULT_VALUE
 			)
 		)
-		generated = parsing.parse(context, WORLD, raw={"name": self.request.name})
+		default_world = {
+			"name": self.request.name,
+			"factions": ["cowboys", "aliens", "indians"], # TODO: remove this when I can edit the factions
+			"game_speed": 1.0,
+		}
+		generated = parsing.parse(context, WORLD, raw=default_world)
 		entity = typing.cast(generated_model.GeneratedEntity, generated)
+  
 		self.datastore.worlds[entity.entity_id] = entity
-		child_path = spec.GeneratablePath(path_elements=[])
 		self.datastore.save()
 
-		logger.info("Number of worlds after", length=len(self.datastore.worlds), entity_id=entity.entity_id)
+		logger.info("Number of worlds", number=len(self.datastore.worlds))
 
+		child_path = spec.GeneratablePath(path_elements=[])
 		response = generated_schema.CreateEntityResponse(
 			entity_id=entity.entity_id, path=child_path
 		)

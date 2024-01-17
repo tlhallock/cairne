@@ -3,7 +3,7 @@ import typing
 import uuid
 from dataclasses import dataclass, field
 from typing import (Any, Callable, Dict, List, Literal, Optional, Tuple, Type,
-                    Union)
+					Union)
 
 from pydantic import BaseModel, Field
 from structlog import get_logger
@@ -21,6 +21,8 @@ import cairne.schema.worlds as worlds_schema
 from cairne.commands.base import Command
 from cairne.model.world_spec import WORLD
 from cairne.serve.data_store import Datastore
+import cairne.openrpg.world_helpers as world_helpers
+import cairne.model.character as character_model
 
 logger = get_logger()
 
@@ -29,10 +31,10 @@ logger = get_logger()
 class GenerationBuilder():
 	user: str
 	datastore: Datastore
-	request: generate_schema.GenerateRequest = Field(...)
-	_world: Optional[generated_model.GeneratedEntity] = Field(default=None)
-	_entity: Optional[generated_model.GeneratedEntity] = Field(default=None)
-	_specification: Optional[spec.GeneratableSpecification] = Field(default=None)
+	request: generate_schema.GenerateRequest = field()
+	_world: Optional[generated_model.GeneratedEntity] = field(default=None)
+	_entity: Optional[generated_model.GeneratedEntity] = field(default=None)
+	_specification: Optional[spec.GeneratableSpecification] = field(default=None)
 
 	def get_world(self) -> generated_model.GeneratedEntity:
 		if self._world is None:
@@ -123,7 +125,26 @@ class GenerationBuilder():
 		]
 		
 	def create_generation_variables(self) -> generate_model.GenerationVariables:
-		variables: Dict[str, str] = {}
+		world = self.get_world()
+		variables: Dict[str, str] = dict(
+			possible_factions=", ".join(faction for faction in world_helpers.get_factions(world)),
+			possible_genders=", ".join(gender.value for gender in character_model.Gender),
+			possible_archetypes=", ".join(archetype.value for archetype in character_model.Archetype),
+			existing_characters=world_helpers.describe_existing_characters(world),
+		)
+		theme = world_helpers.get_theme(world)
+		if theme is not None:
+			variables["theme"] = theme
+		character_counts = world_helpers.CharacterCounts.get_character_counts(world)
+
+		# TODO: when we generate more than one character:
+		generation_target = world_helpers.CharacterGenerationTarget(
+			number_of_total_characters=20,
+			number_of_characters_per_faction=4,
+		)
+		character_counts.format_count_instructions(generation_target)
+		"Do not generate more than what is needed."
+
 		return generate_model.GenerationVariables(variables=variables)
 	
 	def create_instructions(
@@ -140,6 +161,13 @@ class GenerationBuilder():
 			]
 
 		formatted = generation_variables.format(instructions)
+   
+		if True:  # TODO: Check if we are generating json
+			example = self.get_specification().create_example()
+			instruction = generate_model.Instruction(
+				message=f"Please format your response as JSON. For example: {example}"
+			)
+			instructions.append(instruction)
 		return formatted
 
 	def create_generator_model(self) -> generate_model.GeneratorModel:

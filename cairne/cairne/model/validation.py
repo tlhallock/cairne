@@ -3,7 +3,7 @@ import json
 import typing
 import uuid
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -11,41 +11,47 @@ from pydantic import BaseModel, Field
 from structlog import get_logger
 
 import cairne.model.calls as calls
+# rename this to generated_model
 import cairne.model.generated as gen
 import cairne.model.parsing as parsing
 import cairne.model.specification as spec
 import cairne.parsing.parse_incomplete_json as parse_incomplete
 
+
 logger = get_logger(__name__)
 
 
 @dataclass
-class PathElement:
-	key: str
-	generated: gen.Generated
-
-
-@dataclass
-class ValidationContext(BaseModel):
-	source: gen.GenerationSource = Field()
-	current_path: List[PathElement] = Field(default_factory=list)
-	errors: List[spec.ValidationError] = Field(default_factory=list)
-	success: bool = Field(default=True)
+class ValidationContext:
+	validation_root: gen.GeneratedEntity = field()
+	# specification_root: spec.EntitySpecification = field()
+ 
+	current_path: spec.GeneratablePath = field(default_factory=spec.GeneratablePath)
+	generated_stack: List[gen.GeneratedBase] = field(default_factory=list)
+	errors: List[spec.ValidationError] = field(default_factory=list)
+	success: bool = field(default=True)
 	# validated?
 
 	def create_path(self) -> str:
-		return "".join(field.key for field in self.current_path)
+		return self.current_path.as_str()
 
 	def add_error(self, error: spec.ValidationError) -> None:
 		self.errors.append(error)
+		if len(self.generated_stack) > 0:
+			self.generated_stack[-1].validation_errors.append(error)
+		else:
+			self.validation_root.validation_errors.append(error)
 		self.success = False
 
 	@contextmanager
-	def with_path(self, key: str, generated: gen.Generated):
-		path_element = PathElement(key=key, generated=generated)
-		self.current_path.append(path_element)
+	def with_path(self, path_element: spec.GeneratablePathElement, generated: gen.GeneratedBase) -> None:
+		old_path = self.current_path
+		self.current_path = self.current_path.append(path_element)
+		self.generated_stack.append(generated)
+		generated.validation_errors = []
 		yield
-		self.current_path.pop()
+		self.generated_stack.pop()
+		self.current_path = old_path
 
 	# required: bool = Field(default=True)
 	# options: List[Tuple[Any, List[str]]]
@@ -129,7 +135,7 @@ def validate_one_of_literal(
 	context: ValidationContext,
 	specification: spec.OneOfLiteralValidator,
 	parsed: gen.Generated,
-):
+) -> None:
 	if not isinstance(parsed, gen.GeneratedString):
 		context.add_error(
 			spec.ValidationError(
@@ -160,8 +166,75 @@ def validate_one_of_literal(
 		)
 	)
 
+def validate_one_of_generated(
+	context: ValidationContext,
+	specification: spec.OneOfGeneratedValidator,
+	parsed: gen.Generated,
+) -> None:
+	generated_options: gen.Generated = context.validation_root.get(specification.path, 0)
+	
+	if isinstance(generated_options, gen.GeneratedList):
+		generated_list = typing.cast(gen.GeneratedList, generated_options)
+		list_specification = typing.cast(spec.ListSpecification, context.validation_root.get(specification.path, 0))
+		if not isinstance(list_specification.element_specification, spec.ValueSpecification):
+			context.add_error(
+				spec.ValidationError(
+					path=context.create_path(),
+					message=f"Only know how to validate generated lists of values, not {list_specification.element_specification}"
+				)
+			)
+			return
+		element_specification = typing.cast(spec.ValueSpecification, list_specification.element_specification)
+		if element_specification.parser.parser_name == spec.ParserName.STRING:
+			possible_values = []
+			for element in generated_list.elements:
+				generated_string = typing.cast(gen.GeneratedString, element)
+				if generated_string.parsed is None:
+					continue
+				possible_values.append(generated_string.parsed)
+			string_to_validate = typing.cast(gen.GeneratedString, parsed).parsed
+			if string_to_validate is None:
+				# context.add_error(
+				# 	spec.ValidationError(
+				# 		path=context.create_path(),
+				# 		message=f"Value must not be empty, possible values: {possible_values}"
+				# 	)
+				# )
+				return
+			for possible_value in possible_values:
+				if possible_value.lower() == string_to_validate.lower():
+					parsed.result = possible_value
+					return
+			context.add_error(
+				spec.ValidationError(
+					path=context.create_path(), message=f"field must be one of [{generated_options}], found {string_to_validate}"
+				)
+			)
+		elif element_specification.parser.parser_name == spec.ParserName.FLOAT:
+			raise NotImplementedError()
+		elif element_specification.parser.parser_name == spec.ParserName.INTEGER:
+			raise NotImplementedError()
+		elif element_specification.parser.parser_name == spec.ParserName.BOOLEAN:
+			raise NotImplementedError()
+		else:
+			context.add_error(
+				spec.ValidationError(
+					path=context.create_path(),
+					message=f"Only know how to validate generated lists of values, not {list_specification.element_specification}"
+				)
+			)
+			return
+	else:
+		context.add_error(
+			spec.ValidationError(
+				path=context.create_path(),
+				message=f"Only know how to validate generated lists, not {generated_options}"
+			)
+		)
+	
 
-def validate(
+
+def validate_field(
 	context: ValidationContext,
 	specification: spec.ValidatorSpecification,
 	parsed: gen.Generated,
@@ -178,6 +251,96 @@ def validate(
 		validate_nonnegative(
 			context, specification, typing.cast(gen.GeneratedValue, parsed)
 		)
+	elif specification.validator_name == spec.ValidatorName.ONE_OF_GENERATED:
+		validate_one_of_generated(
+			context, typing.cast(spec.OneOfGeneratedValidator, specification), parsed
+		)
 	else:
 		logger.error(f"unknown validator {specification.validator_name}")
+		raise NotImplementedError()
+
+
+def validate_generated(
+	context: ValidationContext,
+	specification: spec.GeneratableSpecification,
+	generatable: gen.Generated,
+):
+	for validator in specification.validators:
+		validate_field(context, validator, generatable)
+
+	if isinstance(specification, spec.ValueSpecification):
+		if not isinstance(generatable, gen.GeneratedValue):
+			context.add_error(
+				spec.ValidationError(
+					path=context.create_path(),
+					message=f"expected a value, found {generatable}",
+				)
+			)
+			return
+		value = typing.cast(gen.GeneratedValue, generatable)
+	# elif isinstance(specification, spec.EntitySpecification):
+	# 	if not isinstance(generatable, gen.GeneratedEntity):
+	# 		context.add_error(
+	# 			spec.ValidationError(
+	# 				path=context.create_path(),
+	# 				message=f"expected an entity, found {generatable}",
+	# 			)
+	# 		)
+	# 		return
+	# 	entity = typing.cast(gen.GeneratedEntity, generatable)
+	elif isinstance(specification, spec.EntityDictionarySpecification):
+		if not isinstance(generatable, gen.EntityDictionary):
+			context.add_error(
+				spec.ValidationError(
+					path=context.create_path(),
+					message=f"expected a dictionary, found {generatable}",
+				)
+			)
+			return
+		dictionary = typing.cast(gen.EntityDictionary, generatable)
+		for key, value in dictionary.entities.items():
+			with context.with_path(spec.GeneratablePathElement(entity_id=key), generated=value):
+				validate_generated(
+					context=context,
+					specification=specification.entity_specification,
+					generatable=value,
+				)
+	elif isinstance(specification, spec.ListSpecification):
+		if not isinstance(generatable, gen.GeneratedList):
+			import ipdb; ipdb.set_trace()
+			context.add_error(
+				spec.ValidationError(
+					path=context.create_path(),
+					message=f"expected a list, found {generatable}",
+				)
+			)
+			return
+		generated_list = typing.cast(gen.GeneratedList, generatable)
+		for index, element in enumerate(generated_list.elements):
+			with context.with_path(spec.GeneratablePathElement(index=index), generated=element):
+				validate_generated(
+					context=context,
+					specification=specification.element_specification,
+					generatable=element,
+				)
+	elif isinstance(specification, spec.ObjectSpecification):
+		if not isinstance(generatable, gen.GeneratedObject):
+			context.add_error(
+				spec.ValidationError(
+					path=context.create_path(),
+					message=f"expected an object, found {generatable}",
+				)
+			)
+			return
+		generated_object = typing.cast(gen.GeneratedObject, generatable)
+		for key, value in generated_object.children.items():
+			child_specification = specification.children.get(key, None)
+			with context.with_path(spec.GeneratablePathElement(key=key), generated=value):
+				validate_generated(
+					context=context,
+					specification=child_specification,
+					generatable=value,
+				)
+	else:
+		logger.error(f"unknown specification {specification}")
 		raise NotImplementedError()

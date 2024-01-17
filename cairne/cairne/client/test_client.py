@@ -8,6 +8,7 @@ from structlog import get_logger
 import cairne.model.specification as spec
 import cairne.schema.generated as generated_schema
 import cairne.schema.worlds as worlds_schema
+import cairne.schema.generate as generate_schema
 
 logger = get_logger(__name__)
 
@@ -81,6 +82,27 @@ def test_characters():
   
 		character = character_response.entity
 		logger.debug("Got character", character=character)
+  
+		generate_request = generate_schema.GenerateRequest(
+			world_id=world.entity_id,
+			entity_id=character.entity_id,
+		)
+		"""
+	fields_to_generate: Optional[generation_model.TargetFields] = Field(default=None)
+ 
+	generator_model: Optional[generation_model.GeneratorModel] = Field(default=None)
+	parameters: Optional[generation_model.GenerationRequestParameters] = Field(default=None)
+ 
+	prompt_messages: Optional[List[generation_model.GenerationChatMessage]] = Field(default=None)
+	instructions: Optional[List[generation_model.Instruction]] = Field(default=None)
+	json_structure: Optional[JsonStructureRequest] = Field(default=None)
+		"""
+		response = requests.post(
+			f"{HOST}/generate",
+			json=json.loads(generate_request.model_dump_json()),
+		)
+		assert response.status_code == 200
+  
 
 		response = requests.delete(f"{HOST}/world/{world.entity_id}/entity/{create_response.entity_id}")
 		assert response.status_code == 200

@@ -106,6 +106,8 @@ class GeneratedBase(BaseModel):
 		spec.BaseGenerationResult | str | int | float | bool | None
 	] = Field(default=None)
 	deletion: Optional[Deletion] = Field(default=None)
+ 
+	validation_errors: List[spec.ValidationError] = Field(default_factory=list, exclude=True)
 
 	def is_generated(self) -> bool:
 		raise NotImplementedError()

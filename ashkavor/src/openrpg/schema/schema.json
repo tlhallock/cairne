@@ -1,0 +1,1246 @@
+{
+  "$defs": {
+    "AppendElementRequest": {
+      "properties": {
+        "world_id": {
+          "format": "uuid",
+          "title": "World Id",
+          "type": "string"
+        },
+        "value_js": {
+          "title": "Value Js",
+          "type": "string"
+        },
+        "path": {
+          "$ref": "#/$defs/GeneratablePath"
+        }
+      },
+      "required": [
+        "world_id",
+        "value_js",
+        "path"
+      ],
+      "title": "AppendElementRequest",
+      "type": "object"
+    },
+    "AppendElementResponse": {
+      "properties": {},
+      "title": "AppendElementResponse",
+      "type": "object"
+    },
+    "ApplyGenerationRequest": {
+      "properties": {
+        "generation_id": {
+          "format": "uuid",
+          "title": "Generation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "generation_id"
+      ],
+      "title": "ApplyGenerationRequest",
+      "type": "object"
+    },
+    "ApplyGenerationResponse": {
+      "properties": {
+        "generation_id": {
+          "format": "uuid",
+          "title": "Generation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "generation_id"
+      ],
+      "title": "ApplyGenerationResponse",
+      "type": "object"
+    },
+    "CancelGenerationRequest": {
+      "properties": {
+        "generation_id": {
+          "format": "uuid",
+          "title": "Generation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "generation_id"
+      ],
+      "title": "CancelGenerationRequest",
+      "type": "object"
+    },
+    "CancelGenerationResponse": {
+      "properties": {
+        "generation_id": {
+          "format": "uuid",
+          "title": "Generation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "generation_id"
+      ],
+      "title": "CancelGenerationResponse",
+      "type": "object"
+    },
+    "ChatRole": {
+      "enum": [
+        "system",
+        "assistant",
+        "user"
+      ],
+      "title": "ChatRole",
+      "type": "string"
+    },
+    "CreateEntityRequest": {
+      "properties": {
+        "world_id": {
+          "format": "uuid",
+          "title": "World Id",
+          "type": "string"
+        },
+        "entity_type": {
+          "$ref": "#/$defs/cairne__model__specification__EntityType"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Name"
+        }
+      },
+      "required": [
+        "world_id",
+        "entity_type",
+        "name"
+      ],
+      "title": "CreateEntityRequest",
+      "type": "object"
+    },
+    "CreateEntityResponse": {
+      "properties": {
+        "entity_id": {
+          "format": "uuid",
+          "title": "Entity Id",
+          "type": "string"
+        },
+        "path": {
+          "$ref": "#/$defs/GeneratablePath"
+        }
+      },
+      "required": [
+        "entity_id",
+        "path"
+      ],
+      "title": "CreateEntityResponse",
+      "type": "object"
+    },
+    "CreateWorldRequest": {
+      "properties": {
+        "name": {
+          "description": "Name of the world",
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "CreateWorldRequest",
+      "type": "object"
+    },
+    "DeleteEntityRequest": {
+      "properties": {
+        "world_id": {
+          "format": "uuid",
+          "title": "World Id",
+          "type": "string"
+        },
+        "entity_id": {
+          "format": "uuid",
+          "title": "Entity Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "world_id",
+        "entity_id"
+      ],
+      "title": "DeleteEntityRequest",
+      "type": "object"
+    },
+    "DeleteEntityResponse": {
+      "properties": {},
+      "title": "DeleteEntityResponse",
+      "type": "object"
+    },
+    "EntityGenerationField": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "EntityGenerationField",
+      "type": "object"
+    },
+    "EntityGenerationSchema": {
+      "properties": {
+        "fields": {
+          "items": {
+            "$ref": "#/$defs/EntityGenerationField"
+          },
+          "title": "Fields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "fields"
+      ],
+      "title": "EntityGenerationSchema",
+      "type": "object"
+    },
+    "EntityTypeSummary": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "total_number": {
+          "title": "Total Number",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "name",
+        "label",
+        "total_number"
+      ],
+      "title": "EntityTypeSummary",
+      "type": "object"
+    },
+    "GeneratablePath": {
+      "properties": {
+        "path_elements": {
+          "items": {
+            "$ref": "#/$defs/GeneratablePathElement"
+          },
+          "title": "Path Elements",
+          "type": "array"
+        }
+      },
+      "title": "GeneratablePath",
+      "type": "object"
+    },
+    "GeneratablePathElement": {
+      "properties": {
+        "key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Key"
+        },
+        "index": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Index"
+        },
+        "entity_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Entity Id"
+        }
+      },
+      "title": "GeneratablePathElement",
+      "type": "object"
+    },
+    "GenerateRequest": {
+      "properties": {
+        "world_id": {
+          "format": "uuid",
+          "title": "World Id",
+          "type": "string"
+        },
+        "entity_id": {
+          "default": null,
+          "format": "uuid",
+          "title": "Entity Id",
+          "type": "string"
+        },
+        "fields_to_generate": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TargetFields"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "generator_model": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeneratorModel"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "parameters": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GenerationRequestParameters"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "prompt_messages": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/GenerationChatMessage"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Prompt Messages"
+        },
+        "instructions": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/Instruction"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Instructions"
+        },
+        "json_structure": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/JsonStructureRequest"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "world_id"
+      ],
+      "title": "GenerateRequest",
+      "type": "object"
+    },
+    "GenerateResponse": {
+      "properties": {
+        "generation_id": {
+          "format": "uuid",
+          "title": "Generation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "generation_id"
+      ],
+      "title": "GenerateResponse",
+      "type": "object"
+    },
+    "GeneratedEntity": {
+      "properties": {
+        "entity_id": {
+          "format": "uuid",
+          "title": "Entity Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Name"
+        },
+        "image_uri": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Image Uri"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "path": {
+          "$ref": "#/$defs/GeneratablePath"
+        },
+        "js": {
+          "default": null,
+          "title": "Js",
+          "type": "string"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/$defs/GeneratedField"
+          },
+          "title": "Fields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "entity_id",
+        "name",
+        "image_uri",
+        "created_at",
+        "updated_at",
+        "path",
+        "fields"
+      ],
+      "title": "GeneratedEntity",
+      "type": "object"
+    },
+    "GeneratedEntityListItem": {
+      "properties": {
+        "entity_id": {
+          "format": "uuid",
+          "title": "Entity Id",
+          "type": "string"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Name"
+        },
+        "image_uri": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Image Uri"
+        },
+        "created_at": {
+          "format": "date-time",
+          "title": "Created At",
+          "type": "string"
+        },
+        "updated_at": {
+          "format": "date-time",
+          "title": "Updated At",
+          "type": "string"
+        },
+        "path": {
+          "$ref": "#/$defs/GeneratablePath"
+        }
+      },
+      "required": [
+        "entity_id",
+        "name",
+        "image_uri",
+        "created_at",
+        "updated_at",
+        "path"
+      ],
+      "title": "GeneratedEntityListItem",
+      "type": "object"
+    },
+    "GeneratedField": {
+      "properties": {
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "raw_value": {
+          "title": "Raw Value",
+          "type": "string"
+        },
+        "value_js": {
+          "title": "Value Js",
+          "type": "string"
+        },
+        "value_type": {
+          "$ref": "#/$defs/GeneratedValueEditor"
+        },
+        "edit_path": {
+          "$ref": "#/$defs/GeneratablePath"
+        },
+        "choices": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Choices"
+        },
+        "validation_errors": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Validation Errors",
+          "type": "array"
+        },
+        "children": {
+          "anyOf": [
+            {
+              "items": {
+                "$ref": "#/$defs/GeneratedField"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Children"
+        },
+        "add_value_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GeneratedValueEditor"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "label",
+        "raw_value",
+        "value_js",
+        "value_type",
+        "edit_path"
+      ],
+      "title": "GeneratedField",
+      "type": "object"
+    },
+    "GeneratedValueEditor": {
+      "enum": [
+        "string",
+        "text",
+        "float",
+        "integer",
+        "boolean",
+        "object",
+        "list",
+        "entities_dictionary"
+      ],
+      "title": "GeneratedValueEditor",
+      "type": "string"
+    },
+    "Generation": {
+      "properties": {
+        "generation_id": {
+          "format": "uuid",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "world_id": {
+          "format": "uuid",
+          "title": "World Id",
+          "type": "string"
+        },
+        "entity_id": {
+          "format": "uuid",
+          "title": "Entity Id",
+          "type": "string"
+        },
+        "entity_type": {
+          "$ref": "#/$defs/cairne__model__specification__EntityType"
+        },
+        "begin_time": {
+          "format": "date-time",
+          "title": "Begin Time",
+          "type": "string"
+        },
+        "end_time": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "End Time"
+        },
+        "status": {
+          "$ref": "#/$defs/GenerationStatus"
+        }
+      },
+      "required": [
+        "generation_id",
+        "world_id",
+        "entity_id",
+        "entity_type",
+        "begin_time",
+        "end_time",
+        "status"
+      ],
+      "title": "Generation",
+      "type": "object"
+    },
+    "GenerationChatMessage": {
+      "properties": {
+        "role": {
+          "$ref": "#/$defs/ChatRole"
+        },
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "role",
+        "message"
+      ],
+      "title": "GenerationChatMessage",
+      "type": "object"
+    },
+    "GenerationHistory": {
+      "properties": {},
+      "title": "GenerationHistory",
+      "type": "object"
+    },
+    "GenerationListItem": {
+      "properties": {
+        "generation_id": {
+          "format": "uuid",
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "begin_time": {
+          "format": "date-time",
+          "title": "Begin Time",
+          "type": "string"
+        },
+        "end_time": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "End Time"
+        },
+        "status": {
+          "$ref": "#/$defs/GenerationStatus"
+        }
+      },
+      "required": [
+        "generation_id",
+        "begin_time",
+        "end_time",
+        "status"
+      ],
+      "title": "GenerationListItem",
+      "type": "object"
+    },
+    "GenerationRequestParameters": {
+      "properties": {
+        "max_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Tokens"
+        },
+        "temperature": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Temperature"
+        },
+        "top_p": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Top P"
+        },
+        "frequency_penalty": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Frequency Penalty"
+        },
+        "presence_penalty": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Presence Penalty"
+        },
+        "seed": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Seed"
+        }
+      },
+      "title": "GenerationRequestParameters",
+      "type": "object"
+    },
+    "GenerationState": {
+      "properties": {},
+      "title": "GenerationState",
+      "type": "object"
+    },
+    "GenerationStatus": {
+      "enum": [
+        "queued",
+        "in_progress",
+        "streaming",
+        "error",
+        "complete"
+      ],
+      "title": "GenerationStatus",
+      "type": "string"
+    },
+    "GeneratorModel": {
+      "properties": {
+        "generator_type": {
+          "$ref": "#/$defs/GeneratorType"
+        },
+        "g_model_id": {
+          "title": "G Model Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "generator_type",
+        "g_model_id"
+      ],
+      "title": "GeneratorModel",
+      "type": "object"
+    },
+    "GeneratorType": {
+      "enum": [
+        "ollama",
+        "openai",
+        "hugging_face"
+      ],
+      "title": "GeneratorType",
+      "type": "string"
+    },
+    "GetEntityRequest": {
+      "properties": {
+        "world_id": {
+          "format": "uuid",
+          "title": "World Id",
+          "type": "string"
+        },
+        "entity_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Entity Id"
+        }
+      },
+      "required": [
+        "world_id"
+      ],
+      "title": "GetEntityRequest",
+      "type": "object"
+    },
+    "GetEntityResponse": {
+      "properties": {
+        "entity": {
+          "$ref": "#/$defs/GeneratedEntity"
+        }
+      },
+      "required": [
+        "entity"
+      ],
+      "title": "GetEntityResponse",
+      "type": "object"
+    },
+    "GetEntitySchemaResponse": {
+      "properties": {
+        "schema": {
+          "$ref": "#/$defs/EntityGenerationSchema"
+        }
+      },
+      "required": [
+        "schema"
+      ],
+      "title": "GetEntitySchemaResponse",
+      "type": "object"
+    },
+    "GetGenerationResponse": {
+      "properties": {
+        "generation": {
+          "$ref": "#/$defs/Generation"
+        }
+      },
+      "required": [
+        "generation"
+      ],
+      "title": "GetGenerationResponse",
+      "type": "object"
+    },
+    "Instruction": {
+      "properties": {
+        "message": {
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "message"
+      ],
+      "title": "Instruction",
+      "type": "object"
+    },
+    "JsonStructureRequest": {
+      "properties": {
+        "generate_json": {
+          "default": true,
+          "title": "Generate Json",
+          "type": "boolean"
+        },
+        "json_schema": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Json Schema"
+        },
+        "examples": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Examples"
+        }
+      },
+      "title": "JsonStructureRequest",
+      "type": "object"
+    },
+    "ListEntitiesRequest": {
+      "properties": {
+        "world_id": {
+          "format": "uuid",
+          "title": "World Id",
+          "type": "string"
+        },
+        "entity_type": {
+          "$ref": "#/$defs/cairne__model__specification__EntityType"
+        }
+      },
+      "required": [
+        "world_id",
+        "entity_type"
+      ],
+      "title": "ListEntitiesRequest",
+      "type": "object"
+    },
+    "ListEntitiesResponse": {
+      "properties": {
+        "entities": {
+          "items": {
+            "$ref": "#/$defs/GeneratedEntityListItem"
+          },
+          "title": "Entities",
+          "type": "array"
+        }
+      },
+      "title": "ListEntitiesResponse",
+      "type": "object"
+    },
+    "ListEntityTypesResponse": {
+      "properties": {
+        "entity_types": {
+          "description": "List of entity types",
+          "items": {
+            "$ref": "#/$defs/cairne__schema__worlds__EntityType"
+          },
+          "title": "Entity Types",
+          "type": "array"
+        }
+      },
+      "required": [
+        "entity_types"
+      ],
+      "title": "ListEntityTypesResponse",
+      "type": "object"
+    },
+    "ListGenerationsResponse": {
+      "properties": {
+        "generations": {
+          "items": {
+            "$ref": "#/$defs/GenerationListItem"
+          },
+          "title": "Generations",
+          "type": "array"
+        }
+      },
+      "title": "ListGenerationsResponse",
+      "type": "object"
+    },
+    "ListLoadedModelsRequest": {
+      "properties": {},
+      "title": "ListLoadedModelsRequest",
+      "type": "object"
+    },
+    "ListLoadedModelsResponse": {
+      "properties": {
+        "loaded_models": {
+          "items": {
+            "$ref": "#/$defs/LoadedModel"
+          },
+          "title": "Loaded Models",
+          "type": "array"
+        }
+      },
+      "required": [
+        "loaded_models"
+      ],
+      "title": "ListLoadedModelsResponse",
+      "type": "object"
+    },
+    "LoadModelRequest": {
+      "properties": {
+        "model_name": {
+          "title": "Model Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "model_name"
+      ],
+      "title": "LoadModelRequest",
+      "type": "object"
+    },
+    "LoadModelResponse": {
+      "properties": {
+        "loaded_model_id": {
+          "title": "Loaded Model Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "loaded_model_id"
+      ],
+      "title": "LoadModelResponse",
+      "type": "object"
+    },
+    "LoadedModel": {
+      "properties": {
+        "model_name": {
+          "title": "Model Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "model_name"
+      ],
+      "title": "LoadedModel",
+      "type": "object"
+    },
+    "RemoveValueRequest": {
+      "properties": {
+        "world_id": {
+          "format": "uuid",
+          "title": "World Id",
+          "type": "string"
+        },
+        "path": {
+          "$ref": "#/$defs/GeneratablePath"
+        }
+      },
+      "required": [
+        "world_id",
+        "path"
+      ],
+      "title": "RemoveValueRequest",
+      "type": "object"
+    },
+    "RemoveValueResponse": {
+      "properties": {},
+      "title": "RemoveValueResponse",
+      "type": "object"
+    },
+    "ReplaceRequest": {
+      "properties": {
+        "world_id": {
+          "format": "uuid",
+          "title": "World Id",
+          "type": "string"
+        },
+        "new_value_js": {
+          "title": "New Value Js",
+          "type": "string"
+        },
+        "path": {
+          "$ref": "#/$defs/GeneratablePath"
+        }
+      },
+      "required": [
+        "world_id",
+        "new_value_js",
+        "path"
+      ],
+      "title": "ReplaceRequest",
+      "type": "object"
+    },
+    "ReplaceResponse": {
+      "properties": {},
+      "title": "ReplaceResponse",
+      "type": "object"
+    },
+    "TargetFields": {
+      "properties": {
+        "all": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "All"
+        },
+        "fields": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Fields",
+          "type": "array"
+        }
+      },
+      "title": "TargetFields",
+      "type": "object"
+    },
+    "UnloadModelRequest": {
+      "properties": {
+        "loaded_model_id": {
+          "title": "Loaded Model Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "loaded_model_id"
+      ],
+      "title": "UnloadModelRequest",
+      "type": "object"
+    },
+    "UnloadModelResponse": {
+      "properties": {},
+      "title": "UnloadModelResponse",
+      "type": "object"
+    },
+    "WorldSummary": {
+      "properties": {
+        "id": {
+          "description": "ID of the world",
+          "format": "uuid",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "description": "Name of the world",
+          "title": "Name",
+          "type": "string"
+        },
+        "entity_type_summaries": {
+          "items": {
+            "$ref": "#/$defs/EntityTypeSummary"
+          },
+          "title": "Entity Type Summaries",
+          "type": "array"
+        },
+        "generation_goals": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Generation Goals",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "entity_type_summaries",
+        "generation_goals"
+      ],
+      "title": "WorldSummary",
+      "type": "object"
+    },
+    "cairne__model__specification__EntityType": {
+      "enum": [
+        "world",
+        "character",
+        "item",
+        "resource",
+        "region",
+        "plot_stage",
+        "dialogue",
+        "tool",
+        "vehicle",
+        "building",
+        "crafting_recipe",
+        "crafting_location",
+        "animal"
+      ],
+      "title": "EntityType",
+      "type": "string"
+    },
+    "cairne__schema__worlds__EntityType": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "label"
+      ],
+      "title": "EntityType",
+      "type": "object"
+    }
+  },
+  "title": "Cairne Schema"
+}

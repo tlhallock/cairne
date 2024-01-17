@@ -26,6 +26,6 @@ class Datastore(BaseModel):
 		return datastore
 
 	def save(self):
-		js = self.model_dump_json()
+		js = self.model_dump_json(indent=2)
 		with open(SAVE_PATH, "w") as f:
 			f.write(js)

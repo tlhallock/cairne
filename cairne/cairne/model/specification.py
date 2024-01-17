@@ -22,6 +22,16 @@ class GeneratablePathElement(BaseModel):
 	key: Optional[str] = Field(default=None)
 	index: Optional[int] = Field(default=None)
 	entity_id: Optional[uuid.UUID] = Field(default=None)
+ 
+	def as_str(self) -> str:
+		if self.key is not None:
+			return f".{self.key}"
+		elif self.index is not None:
+			return f"[{self.index}]"
+		elif self.entity_id is not None:
+			return f"[self.entity_id]"
+		else:
+			raise ValueError(f"Invalid path element: {self}")
 
 
 class GeneratablePath(BaseModel):
@@ -41,6 +51,9 @@ class GeneratablePath(BaseModel):
 			path_elements=[element.model_copy() for element in self.path_elements]
 			+ [element]
 		)
+
+	def as_str(self) -> str:
+		return "".join([element.as_str() for element in self.path_elements])
 
 
 class InvalidPathError(Exception):
@@ -155,6 +168,9 @@ class EntityType(str, Enum):
 	def get_specification(self) -> "EntitySpecification":
 		from cairne.model.world_spec import WORLD
 
+		if self == EntityType.WORLD:
+			return WORLD
+
 		return typing.cast(
 			EntityDictionarySpecification, WORLD.children[self.get_field_name()]
 		).entity_specification
@@ -204,7 +220,7 @@ class ParserSpecification(BaseModel):
 class ValidatorName(str, Enum):
 	REQUIRED = "required"
 	ONE_OF_LITERAL = "one_of_literal"
-	ONE_OF_FIELD = "one_of"
+	ONE_OF_GENERATED = "one_of"
 	NAME = "name"
 	NONNEGATIVE = "nonnegative"
 	LIST_OF_ARBITRARY_STRINGS = "list_of_arbitrary_strings"
@@ -215,7 +231,13 @@ class ValidatorSpecification(BaseModel):
 
 
 class OneOfLiteralValidator(ValidatorSpecification):
+	validator_name: ValidatorName = Field(default=ValidatorName.ONE_OF_LITERAL)
 	options: List[Tuple[GenerationResult, Set[str]]] = Field(default_factory=list)
+
+
+class OneOfGeneratedValidator(ValidatorSpecification):
+	validator_name: ValidatorName = Field(default=ValidatorName.ONE_OF_GENERATED)
+	path: GeneratablePath = Field()
 
 
 class EditorName(str, Enum):

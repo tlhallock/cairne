@@ -1,5 +1,5 @@
 import cairne.model.specification as spec
-from cairne.model.character import Archetype
+import cairne.model.character as character_model
 
 # spawn location
 
@@ -14,8 +14,23 @@ WORLD = spec.EntitySpecification(
 		"name": spec.ValueSpecification(
 			parser=spec.ParserSpecification(parser_name=spec.ParserName.STRING),
 			editor=spec.EditorSpecification(editor_name=spec.EditorName.SHORT_STRING),
-			generation=spec.GenerationSpecification(num_examples=3),
 			validators=[spec.ValidatorSpecification(validator_name=spec.ValidatorName.REQUIRED)],
+		),
+		"theme": spec.ValueSpecification(
+			parser=spec.ParserSpecification(parser_name=spec.ParserName.STRING),
+			editor=spec.EditorSpecification(editor_name=spec.EditorName.LONG_STRING),
+			validators=[spec.ValidatorSpecification(validator_name=spec.ValidatorName.REQUIRED)],
+		),
+		"concept": spec.ValueSpecification(
+			parser=spec.ParserSpecification(parser_name=spec.ParserName.STRING),
+			editor=spec.EditorSpecification(editor_name=spec.EditorName.LONG_STRING),
+			validators=[spec.ValidatorSpecification(validator_name=spec.ValidatorName.REQUIRED)],
+		),
+		"game_speed": spec.ValueSpecification(
+			parser=spec.ParserSpecification(parser_name=spec.ParserName.FLOAT),
+			editor=spec.EditorSpecification(editor_name=spec.EditorName.NUMBER_INPUT),
+			validators=[spec.ValidatorSpecification(validator_name=spec.ValidatorName.REQUIRED)],
+			# Default value of 1.0?
 		),
 		"factions": spec.ListSpecification(
 			element_specification=spec.ValueSpecification(
@@ -28,6 +43,18 @@ WORLD = spec.EntitySpecification(
 		spec.EntityType.REGION.get_field_name(): spec.EntityDictionarySpecification(
 			entity_specification=spec.EntitySpecification(
 				entity_type=spec.EntityType.REGION,
+				generation=spec.GenerationSpecification(
+					instructions=[
+						"Create characters for a game with setting: '{theme}'.",
+						"Character names should be unique and memorable.",
+						"Character names should not be well-known historical figures.",
+						"Character names should be appropriate for the setting.",
+						"Possible factions: [{possible_factions}].",
+						"Possible genders: [{possible_genders}].",
+						"Possible archetypes: [{possible_archetypes}].",
+	 					"The existing characters are: {existing_characters}."
+					],
+				),
 				children={
 					"name": spec.ValueSpecification(
 						parser=spec.ParserSpecification(parser_name=spec.ParserName.STRING),
@@ -183,6 +210,19 @@ WORLD = spec.EntitySpecification(
 						),
 						validators=[spec.ValidatorSpecification(validator_name=spec.ValidatorName.REQUIRED)],
 			 		),
+					"faction": spec.ValueSpecification(
+						parser=spec.ParserSpecification(parser_name=spec.ParserName.STRING),
+						editor=spec.EditorSpecification(editor_name=spec.EditorName.ENUMERATED),
+						validators=[
+							spec.OneOfGeneratedValidator(
+								path=spec.GeneratablePath(
+									path_elements=[
+										spec.GeneratablePathElement(key="factions"),
+									]
+								)
+							),
+						]
+					),
 					"age": spec.ValueSpecification(
 						parser=spec.ParserSpecification(parser_name=spec.ParserName.FLOAT),
 						editor=spec.EditorSpecification(editor_name=spec.EditorName.NUMBER_INPUT),
@@ -196,10 +236,33 @@ WORLD = spec.EntitySpecification(
 						editor=spec.EditorSpecification(editor_name=spec.EditorName.ENUMERATED),
 						validators=[
 							spec.OneOfLiteralValidator(
-								validator_name=spec.ValidatorName.ONE_OF_LITERAL,
 								options=[
 									(archetype, set([archetype.name, archetype.value]))
-									for archetype in Archetype
+									for archetype in character_model.Archetype
+								],
+							)
+						],
+					),
+					"gender": spec.ValueSpecification(
+						parser=spec.ParserSpecification(parser_name=spec.ParserName.STRING),
+						editor=spec.EditorSpecification(editor_name=spec.EditorName.ENUMERATED),
+						validators=[
+							spec.OneOfLiteralValidator(
+								options=[
+									(gender, set([gender.name, gender.value]))
+									for gender in character_model.Gender
+								],
+							)
+						],
+					),
+					"marital_status": spec.ValueSpecification(
+						parser=spec.ParserSpecification(parser_name=spec.ParserName.STRING),
+						editor=spec.EditorSpecification(editor_name=spec.EditorName.ENUMERATED),
+						validators=[
+							spec.OneOfLiteralValidator(
+								options=[
+									(marital_status, set([marital_status.name, marital_status.value]))
+									for marital_status in character_model.MaritalStatus
 								],
 							)
 						],

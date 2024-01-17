@@ -15,33 +15,18 @@ import cairne.schema.generated as generated_schema
 import cairne.schema.worlds as worlds_schema
 from cairne.commands.base import Command
 from cairne.model.world_spec import WORLD
-
-# def export_world(world: generated_model.GeneratedEntity) -> worlds_schema.World:
-#     return worlds_schema.World(
-#         world_id=world.world_id,
-#         name=world.name,
-#         image_uri=world.image_uri,
-#         created_at=world.created_at,
-#         updated_at=world.updated_at,
-#         characters=[export_character_item(character) for character in world.characters.values()],
-#     )
+import cairne.model.validation as validation
+from structlog import get_logger
 
 
-# def export_world_item(world: generated_model.GeneratedEntity) -> worlds_schema.ListWorldsElement:
-#     return worlds_schema.ListWorldsElement(
-#         world_id=world.world_id,
-#         name=world.name,
-#         image_uri=world.image_uri,
-#         created_at=world.created_at,
-#         updated_at=world.updated_at,
-#     )
+logger = get_logger(__name__)
 
 
-# def export_generation_field(name: str, generatable: generated.Generatable) -> characters_schema.GenerationStateField:
-#     return characters_schema.GenerationStateField(
-#         name=name,
-#         value=generatable.parsed,  # type: ignore
-#     )
+def export_validation_errors(validation_errors: List[spec.ValidationError]) -> List[str]:
+	return [
+		validation_error.message
+		for validation_error in validation_errors
+	]
 
 
 def export_generated_entity_item(
@@ -74,7 +59,7 @@ def export_generated_object_child(
 		value_type=generated_schema.GeneratedValueEditor.G_OBJECT,
 		edit_path=path,
 		choices=None, # TODO
-		validation_errors=[], # TODO
+		validation_errors=export_validation_errors(generatable.validation_errors),
 		children=children,
 	)
 
@@ -111,7 +96,7 @@ def export_generated_list_child(
 	children: list[generated_schema.GeneratedField] = []
 	for index, child in enumerate(generatable.elements):
 		child_path = path.append(spec.GeneratablePathElement(index=index))
-		children.append(export_generated_child(child_path, f"[index]", child))
+		children.append(export_generated_child(child_path, f"[{index}]", child))
 	return generated_schema.GeneratedField(
 		label=label,
 		raw_value=json.dumps(generatable.raw),
@@ -119,9 +104,9 @@ def export_generated_list_child(
 		value_type=generated_schema.GeneratedValueEditor.G_LIST,
 		edit_path=path,
 		choices=None, # TODO
-		validation_errors=[], # TODO
+		validation_errors=export_validation_errors(generatable.validation_errors),
 		children=children,
-  		add_value_type=add_value_type,
+		add_value_type=add_value_type,
 	)
 
 
@@ -131,10 +116,11 @@ def export_generated_dictionary_child(
 	generatable: generated_model.EntityDictionary,
 ) -> generated_schema.GeneratedField:
 	children: list[generated_schema.GeneratedField] = []
-	for key, child in generatable.entities.items():
-		label = child.get_name() or str(key)
-		child_path = path.append(spec.GeneratablePathElement(entity_id=key))
-		children.append(export_generated_child(child_path, label, child))
+	if False:
+		for key, child in generatable.entities.items():
+			label = child.get_name() or str(key)
+			child_path = path.append(spec.GeneratablePathElement(entity_id=key))
+			children.append(export_generated_child(child_path, label, child))
 	return generated_schema.GeneratedField(
 		label=label,
 		raw_value=json.dumps(generatable.raw),
@@ -142,7 +128,7 @@ def export_generated_dictionary_child(
 		value_type=generated_schema.GeneratedValueEditor.G_ENTITIES,
 		edit_path=path,
 		choices=None, # TODO
-		validation_errors=[], # TODO
+		validation_errors=export_validation_errors(generatable.validation_errors),
 		children=children,
 	)
 
@@ -159,7 +145,7 @@ def export_generated_boolean_child(
 		value_type=generated_schema.GeneratedValueEditor.G_BOOLEAN,
 		edit_path=path,
 		choices=None, # TODO
-		validation_errors=[], # TODO
+		validation_errors=export_validation_errors(generatable.validation_errors),
 		children=None,
 	)
 
@@ -176,7 +162,7 @@ def export_generated_string_child(
 		value_type=generated_schema.GeneratedValueEditor.G_STRING,
 		edit_path=path,
 		choices=None, # TODO
-		validation_errors=[], # TODO
+		validation_errors=export_validation_errors(generatable.validation_errors),
 		children=None,
 	)
 
@@ -193,7 +179,7 @@ def export_generated_integer_child(
 		value_type=generated_schema.GeneratedValueEditor.G_INTEGER,
 		edit_path=path,
 		choices=None, # TODO
-		validation_errors=[], # TODO
+		validation_errors=export_validation_errors(generatable.validation_errors),
 		children=None,
 	)
 
@@ -210,7 +196,7 @@ def export_generated_float_child(
 		value_type=generated_schema.GeneratedValueEditor.G_FLOAT,
 		edit_path=path,
 		choices=None, # TODO
-		validation_errors=[], # TODO
+		validation_errors=export_validation_errors(generatable.validation_errors),
 		children=None,
 	)
 
@@ -254,9 +240,20 @@ def export_generated_entity(
 	path: spec.GeneratablePath,
 	generated_entity: generated_model.GeneratedEntity,
 ) -> generated_schema.GeneratedEntity:
+	specification = generated_entity.entity_type.get_specification()
+	validation_context = validation.ValidationContext(validation_root=generated_entity)
+	generated_entity.validation_errors = []
+	validation.validate_generated(validation_context, specification, generated_entity)
+  
+	# TODO: This doesn't return the validation errors for the entity itself
 	fields = export_generated_object_child(path, "", generated_entity).children
 	if fields is None:
 		raise NotImplementedError("No fields found for entity: " + str(generated_entity))
+
+	# dictionary_path = generated_entity.entity_type.get_dictionary_path()
+	# entity_path = dictionary_path.append(spec.GeneratablePathElement(entity_id=generated_entity.entity_id))
+	
+   
 	return generated_schema.GeneratedEntity(
 		entity_id=generated_entity.entity_id,
 		name=generated_entity.get_name(),

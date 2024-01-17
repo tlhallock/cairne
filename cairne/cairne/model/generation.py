@@ -13,6 +13,7 @@ from structlog import get_logger
 import cairne.model.calls as calls
 import cairne.model.specification as spec
 import cairne.parsing.parse_incomplete_json as parse_incomplete
+import cairne.model.generated as generated_model
 
 # TODO: rename this file to generate?
 
@@ -131,8 +132,6 @@ class GenerationVariables(BaseModel):
 class TargetFields(BaseModel):
 	all: Optional[bool] = Field(default=None)
 	fields: List[str] = Field(default_factory=list)
-
-
 
 
 class Generation(BaseModel):

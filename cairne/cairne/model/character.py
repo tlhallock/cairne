@@ -49,6 +49,21 @@ class Archetype(str, Enum):
 			raise Exception(f"Unknown archetype {self}")
 
 
+class MaritalStatus(str, Enum):
+	SINGLE = "single"
+	MARRIED = "married"
+	DIVORCED = "divorced"
+	WIDOWED = "widowed"
+	SEPARATED = "separated"
+
+
+class Gender(str, Enum):
+	MALE = "male"
+	FEMALE = "female"
+	NEUTRAL = "neutral"
+
+
+
 # class NameParser(gen.Generatable):
 #     # first_name: Optional[str] = Field(None, description="The character's first name")
 #     # last_name: Optional[str] = Field(None, description="The character's last name")
