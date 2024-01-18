@@ -232,7 +232,7 @@ class ValidatorSpecification(BaseModel):
 
 class OneOfLiteralValidator(ValidatorSpecification):
 	validator_name: ValidatorName = Field(default=ValidatorName.ONE_OF_LITERAL)
-	options: List[Tuple[GenerationResult, Set[str]]] = Field(default_factory=list)
+	options: List[Tuple[GenerationResult, List[str]]] = Field(default_factory=list)
 
 
 class OneOfGeneratedValidator(ValidatorSpecification):

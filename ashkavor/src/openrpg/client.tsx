@@ -152,3 +152,24 @@ export const getGeneration = (
         .then((r) => onStatus(r.data))
         .catch(onError);
 };
+
+export const replaceValue = (
+    worldId: openrpg.WorldId,
+    path: openrpg.GeneratablePath,
+    value_js: string,
+    onComplete: (response: openrpg.ReplaceResponse) => void,
+    onError: (error: Error) => void = (error: Error) => console.log(error)
+) => {
+    const request: openrpg.ReplaceRequest = {
+        world_id: worldId,
+        path: path,
+        value_js: value_js,
+    };
+    console.log('Sending request', request);
+    axios
+        .post('/world/' + worldId + '/update', request, {
+            headers: { 'Content-Type': 'application/json' },
+        })
+        .then((r) => onComplete(r.data))
+        .catch(onError);
+};

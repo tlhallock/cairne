@@ -10,74 +10,93 @@ import * as generation from '../../openrpg/generation';
 import { StructuredGenerationField } from '../structured-generation-field/structured-generation-field';
 import { GenerateStatus } from '../generate-status/generate-status';
 
-import { FIELD_STYLES } from './base';
-
-export interface FieldProps {
+export interface ValueEditorProps {
     field: openrpg.GeneratedField;
     onEdit: () => void;
+    generationState: generation.GenerationState;
+    setGenerationState: (state: generation.GenerationState) => void;
+    depth: number;
+    setJsValue: (value: string) => void;
+    jsValue: string;
 }
 
-export const StringFieldEditor = ({ field, onEdit }: FieldProps) => {
+export const ChoicesEditor = ({ setJsValue, jsValue, field }: ValueEditorProps) => {
+    let value = null;
+    try {
+        value = JSON.parse(jsValue);
+    } catch (e) {
+        value = 'none';
+    }
     return (
-        <div style={FIELD_STYLES}>
-            <label>{field.label}</label>
-            <label>{field.value_js}</label>
-            <div>
-                <input />
-                <button>Replace</button>
-            </div>
-        </div>
+        <select
+            value={value}
+            onChange={(event) => {
+                if (setJsValue) {
+                    setJsValue(JSON.stringify(event.target.value));
+                }
+            }}
+        >
+            {field.choices?.map((choice: string) => (
+                <option key={choice} value={choice}>
+                    {choice}
+                </option>
+            ))}
+            <option value="none">None</option>
+        </select>
     );
 };
 
-export const TextFieldEditor = ({ field, onEdit }: FieldProps) => {
+export const StringFieldEditor = ({ setJsValue, jsValue }: ValueEditorProps) => {
+    let value = null;
+    try {
+        value = JSON.parse(jsValue);
+    } catch (e) {
+        value = '';
+    }
     return (
-        <div style={FIELD_STYLES}>
-            <label>{field.label}</label>
-            <label>{field.value_js}</label>
-            <div>
-                <input type="text" />
-                <button>Replace</button>
-            </div>
-        </div>
+        <input
+            value={value}
+            onChange={(event) => {
+                if (setJsValue) {
+                    setJsValue(JSON.stringify(event.target.value));
+                }
+            }}
+        />
     );
 };
 
-export const BooleanValueEditor = ({ field, onEdit }: FieldProps) => {
-    return (
-        <div style={FIELD_STYLES}>
-            <label>{field.label}</label>
-            <label>{field.value_js}</label>
-            <div>
-                <input type="checkbox" />
-                <button>Set</button>
-            </div>
-        </div>
-    );
+export const TextFieldEditor = ({
+    field,
+    onEdit,
+    generationState,
+    setGenerationState,
+}: ValueEditorProps) => {
+    return <input type="text" />;
 };
 
-export const IntegerValueEditor = ({ field, onEdit }: FieldProps) => {
-    return (
-        <div style={FIELD_STYLES}>
-            <label>{field.label}</label>
-            <label>{field.value_js}</label>
-            <div>
-                <input type="number" />
-                <button>Set</button>
-            </div>
-        </div>
-    );
+export const BooleanValueEditor = ({
+    field,
+    onEdit,
+    generationState,
+    setGenerationState,
+}: ValueEditorProps) => {
+    return <input type="checkbox" />;
 };
 
-export const FloatValueEditor = ({ field, onEdit }: FieldProps) => {
-    return (
-        <div style={FIELD_STYLES}>
-            <label>{field.label}</label>
-            <label>{field.value_js}</label>
-            <div>
-                <input type="number" />
-                <button>Set</button>
-            </div>
-        </div>
-    );
+export const IntegerValueEditor = ({
+    field,
+    onEdit,
+    generationState,
+    setGenerationState,
+}: ValueEditorProps) => {
+    return <input type="number" />;
+};
+
+export const FloatValueEditor = ({
+    field,
+    onEdit,
+    generationState,
+    setGenerationState,
+}: ValueEditorProps) => {
+    return <input type="number" />;
 };

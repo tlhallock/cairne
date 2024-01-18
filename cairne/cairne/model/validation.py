@@ -24,9 +24,7 @@ logger = get_logger(__name__)
 @dataclass
 class ValidationContext:
 	validation_root: gen.GeneratedEntity = field()
-	# specification_root: spec.EntitySpecification = field()
- 
-	current_path: spec.GeneratablePath = field(default_factory=spec.GeneratablePath)
+	current_path: spec.GeneratablePath = field()
 	generated_stack: List[gen.GeneratedBase] = field(default_factory=list)
 	errors: List[spec.ValidationError] = field(default_factory=list)
 	success: bool = field(default=True)
@@ -171,11 +169,13 @@ def validate_one_of_generated(
 	specification: spec.OneOfGeneratedValidator,
 	parsed: gen.Generated,
 ) -> None:
+	return
+	# We need to get this from the world...
 	generated_options: gen.Generated = context.validation_root.get(specification.path, 0)
 	
 	if isinstance(generated_options, gen.GeneratedList):
 		generated_list = typing.cast(gen.GeneratedList, generated_options)
-		list_specification = typing.cast(spec.ListSpecification, context.validation_root.get(specification.path, 0))
+		list_specification = typing.cast(spec.ListSpecification, specification)
 		if not isinstance(list_specification.element_specification, spec.ValueSpecification):
 			context.add_error(
 				spec.ValidationError(

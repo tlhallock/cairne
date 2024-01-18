@@ -1,112 +1,224 @@
 import classNames from 'classnames';
 import styles from './entity-editor.module.scss';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import * as openrpg from '../../openrpg/schema/schema';
 import React from 'react';
-import { getEntity, deleteEntity, structuredGenerate } from '../../openrpg/client';
+import { replaceValue } from '../../openrpg/client';
 import { StructuredGenerationSettings } from '../structured-generation-settings/structured-generation-settings';
 
 import * as generation from '../../openrpg/generation';
 import { StructuredGenerationField } from '../structured-generation-field/structured-generation-field';
 import { GenerateStatus } from '../generate-status/generate-status';
 
-import { FIELD_STYLES, SPLITTER_STYLES, HEADER_STYLES } from './base';
-import { FieldProps } from './value-editors';
+import { FIELD_STYLES, HEADER_STYLES } from './base';
+import { FieldProps } from './base';
 import {
     StringFieldEditor,
     BooleanValueEditor,
     FloatValueEditor,
     IntegerValueEditor,
     TextFieldEditor,
+    ChoicesEditor,
 } from './value-editors';
 
-import { ListValueEditor } from './list-editor';
+import { ListAdder } from './list-editor';
 
-const MapValueEditor = ({ field, onEdit }: FieldProps) => {
+interface ValidationsProps {
+    validationErrors?: openrpg.ValidationErrors;
+}
+
+const Validations = ({ validationErrors }: ValidationsProps) => {
     return (
-        <div style={FIELD_STYLES}>
-            <label>{field.label}</label>
-            <ul>
-                {field.children?.map((value, index) => (
-                    <li key={index}>
-                        <Field field={value} onEdit={onEdit} />
-                        <button>Remove</button>
-                    </li>
-                ))}
-            </ul>
-            <button>Add</button>
+        <ol>
+            {validationErrors?.map((error, index) => (
+                <li key={index + error} style={{ background: 'red' }}>
+                    {error}
+                    <input type="checkbox" />
+                </li>
+            ))}
+        </ol>
+    );
+};
+
+interface SpacerProps {
+    depth: number;
+}
+
+const Spacer = ({ depth }: SpacerProps) => {
+    return <span style={{ marginLeft: 50 * depth }} />;
+};
+
+interface UpdaterProps {
+    path: openrpg.GeneratablePath;
+    onEdit: () => void;
+    jsValue: string;
+    clearJsValue: () => void;
+    validEdits: boolean;
+}
+
+const UpdateButton = ({ path, onEdit, jsValue, clearJsValue, validEdits }: UpdaterProps) => {
+    const location = useLocation();
+    const worldId = location.pathname.split('/')[2];
+    return (
+        <div>
+            <button
+                onClick={() => {
+                    replaceValue(worldId, path, jsValue, (response: openrpg.ReplaceResponse) => {
+                        clearJsValue();
+                        onEdit();
+                    });
+                }}
+                disabled={!validEdits}
+            >
+                Update
+            </button>
+            <button>Delete</button>
         </div>
     );
 };
 
-export const Field = ({ field, onEdit }: FieldProps) => {
-    switch (field.value_type) {
-        case 'string':
-            return <StringFieldEditor field={field} onEdit={onEdit} />;
-        case 'text':
-            return <TextFieldEditor field={field} onEdit={onEdit} />;
-        case 'boolean':
-            return <BooleanValueEditor field={field} onEdit={onEdit} />;
-        case 'float':
-            return <FloatValueEditor field={field} onEdit={onEdit} />;
-        case 'integer':
-            return <IntegerValueEditor field={field} onEdit={onEdit} />;
-        case 'list':
-            return <ListValueEditor field={field} onEdit={onEdit} />;
-        case 'object':
-            return <StringFieldEditor field={field} onEdit={onEdit} />;
-        case 'entities_dictionary':
-            return <MapValueEditor field={field} onEdit={onEdit} />;
-    }
+const Field = (props: FieldProps) => {
+    const [jsValue, setJsValue] = React.useState<string>('');
+    const location = useLocation();
+    const worldId = location.pathname.split('/')[2];
 
+    // Could have summaries for containers...
+    // have generate multiple...
+    let validEdits = jsValue !== props.field.value_js;
+    try {
+        JSON.parse(jsValue);
+    } catch (e) {
+        validEdits = false;
+    }
+    const updateProps: UpdaterProps = {
+        path: props.field.edit_path,
+        onEdit: props.onEdit,
+        jsValue: jsValue,
+        clearJsValue: () => setJsValue(''),
+        validEdits,
+    };
     return (
-        <div
-            style={{
-                border: '1px solid red',
-                padding: '5px',
-                margin: '5px',
-                backgroundColor: 'lightgray',
-                width: '100%',
-            }}
-        >
-            <label>{field.label}</label>
-            <label>Unknown editor</label>
-        </div>
+        <>
+            <label>
+                {props.depth > 0 && <Spacer depth={props.depth} />}
+                {props.field.label}
+            </label>
+            <label>{JSON.parse(props.field.value_js)}</label>
+            {
+                props.field.choices?.length || 0 > 0 ? (
+                    <ChoicesEditor {...props} jsValue={jsValue} setJsValue={setJsValue} />
+                ) : (
+                    {
+                        string: (
+                            <StringFieldEditor
+                                {...props}
+                                jsValue={jsValue}
+                                setJsValue={setJsValue}
+                            />
+                        ),
+                        text: (
+                            <TextFieldEditor {...props} jsValue={jsValue} setJsValue={setJsValue} />
+                        ),
+                        boolean: (
+                            <BooleanValueEditor
+                                {...props}
+                                jsValue={jsValue}
+                                setJsValue={setJsValue}
+                            />
+                        ),
+                        float: (
+                            <FloatValueEditor
+                                {...props}
+                                jsValue={jsValue}
+                                setJsValue={setJsValue}
+                            />
+                        ),
+                        integer: (
+                            <IntegerValueEditor
+                                {...props}
+                                jsValue={jsValue}
+                                setJsValue={setJsValue}
+                            />
+                        ),
+                        list: <div />,
+                        object: <div />,
+                        entities_dictionary: (
+                            <Link
+                                to={
+                                    '/world/' +
+                                    worldId +
+                                    '/entities/' +
+                                    props.field.entity_dictionary_type?.name
+                                }
+                            >
+                                Edit {props.field.entity_dictionary_type?.label}
+                            </Link>
+                        ),
+                    }[props.field.value_type]
+                )
+                //  || <span>{"Unknown value type: " + props.field.value_type}}</span>
+            }
+            {{
+                string: <UpdateButton {...updateProps} />,
+                text: <UpdateButton {...updateProps} />,
+                boolean: <UpdateButton {...updateProps} />,
+                float: <UpdateButton {...updateProps} />,
+                integer: <UpdateButton {...updateProps} />,
+                // List adder should be split up so the add button is with the update button, and the editor is aligns with the others
+                list: <ListAdder {...props} />,
+                object: <div />,
+                entities_dictionary: <div />,
+            }[props.field.value_type] || (
+                <label>Unknown value type: {props.field.value_type}</label>
+            )}
+
+            <Validations validationErrors={props.field.validation_errors} />
+            <StructuredGenerationField
+                generatedField={props.field}
+                generationState={props.generationState}
+                setGenerationState={props.setGenerationState}
+            />
+
+            {props.field.children?.map((value, index) => (
+                // Maybe this should be a field list item?
+                // <button>Remove</button>
+                <Field key={index} {...props} field={value} depth={props.depth + 1} />
+            ))}
+        </>
     );
 };
 
 export interface FieldsProps {
     fields: openrpg.GeneratedField[];
     onEdit: () => void;
-    generatorState: generation.GenerationState;
-    setGeneratorState: (state: generation.GenerationState) => void;
+    generationState: generation.GenerationState;
+    setGenerationState: (state: generation.GenerationState) => void;
 }
 
 export const FieldsEditor = ({
     fields,
     onEdit,
-    generatorState,
-    setGeneratorState,
+    generationState,
+    setGenerationState,
 }: FieldsProps) => {
     return (
-        <>
-            <div style={SPLITTER_STYLES}>
-                <div style={HEADER_STYLES}>
-                    <label>Field</label>
-                    <label>Current value</label>
-                    <label>Updates</label>
-                </div>
-            </div>
+        <div style={FIELD_STYLES}>
+            <label>Field</label>
+            <label>Current value</label>
+            <label>Updates</label>
+            <div />
+            <div />
+            <div />
             {fields?.map((field) => (
-                <li key={field.label} style={SPLITTER_STYLES}>
-                    <Field field={field} onEdit={onEdit} />
-                    <StructuredGenerationField
-                        generatedField={field}
-                        generationState={generatorState}
-                        setGenerationState={setGeneratorState}
-                    />
-                </li>
+                <Field
+                    key={field.label}
+                    field={field}
+                    onEdit={onEdit}
+                    generationState={generationState}
+                    setGenerationState={setGenerationState}
+                    depth={0}
+                />
             ))}
-        </>
+        </div>
     );
 };

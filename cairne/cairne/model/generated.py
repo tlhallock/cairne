@@ -108,6 +108,15 @@ class GeneratedBase(BaseModel):
 	deletion: Optional[Deletion] = Field(default=None)
  
 	validation_errors: List[spec.ValidationError] = Field(default_factory=list, exclude=True)
+ 
+	def to_generated_versions(self) -> List[GeneratedVersion]:
+		return [
+			GeneratedVersion(
+				source=self.metadata.source,
+				date=self.metadata.date,
+				value_js=json.dumps(self.result),
+			)
+		] + self.metadata.previous
 
 	def is_generated(self) -> bool:
 		raise NotImplementedError()
@@ -123,6 +132,9 @@ class GeneratedBase(BaseModel):
 		raise NotImplementedError
 
 	def get(self, path: spec.GeneratablePath, path_index: int) -> "Generated":
+		raise NotImplementedError
+
+	def replace_child(self, key: spec.GeneratablePathElement, value: "Generated") -> None:
 		raise NotImplementedError
 
 
@@ -209,6 +221,17 @@ class GeneratedObject(GeneratedBase):
 				return located
 		return None
 
+	def replace_child(self, key: spec.GeneratablePathElement, value: "Generated") -> None:
+		if not key.key:
+			raise ValueError("Expected a key")
+		if key.key not in self.children:
+			raise ValueError(f"Could not find child with key {key.key}")
+		if len(value.metadata.previous) > 0:
+			raise ValueError("Cannot replace a child with a previous value")
+		previous_value = self.children[key.key]
+		value.metadata.previous = previous_value.to_generated_versions()
+		self.children[key.key] = value
+
 
 class GeneratedList(GeneratedBase):
 	generated_type: Literal["list"] = Field(default_factory=lambda: "list")
@@ -251,6 +274,23 @@ class GeneratedList(GeneratedBase):
 			)
 		child = self.elements[path_element.index]
 		return child.get(path=path, path_index=path_index + 1)
+
+	def replace_child(self, key: spec.GeneratablePathElement, value: "Generated") -> None:
+		index = key.index
+		if index is None:
+			raise ValueError("Expected an index")
+		if index < 0 or index >= len(self.elements):
+			raise ValueError(f"Could not find child with index {index}")
+		if len(value.metadata.previous) > 0:
+			raise ValueError("Cannot replace a child with a previous value")
+		previous_value = self.elements[index]
+		value.metadata.previous = previous_value.to_generated_versions()
+		self.elements[index] = value
+  
+	def append_child(self, value: "Generated") -> None:
+		if len(value.metadata.previous) > 0:
+			raise ValueError("Cannot append a child with a previous value")
+		self.elements.append(value)
 
 
 class GeneratedEntity(GeneratedObject):

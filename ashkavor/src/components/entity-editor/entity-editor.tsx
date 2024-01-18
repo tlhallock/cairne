@@ -10,9 +10,8 @@ import * as generation from '../../openrpg/generation';
 import { StructuredGenerationField } from '../structured-generation-field/structured-generation-field';
 import { GenerateStatus } from '../generate-status/generate-status';
 
-import { SPLITTER_STYLES, HEADER_STYLES } from '../editor/base';
+import { HEADER_STYLES } from '../editor/base';
 import { FieldsEditor, FieldsProps } from '../editor/editor';
-import { Field } from '../editor/editor';
 
 export interface EntityEditorProps {
     className?: string;
@@ -27,7 +26,7 @@ export const EntityEditor = ({ className }: EntityEditorProps) => {
     const navigate = useNavigate();
     const [entity, setEntity] = React.useState<openrpg.GeneratedEntity>();
     const [refreshCounter, setRefreshCounter] = React.useState<number>(0);
-    const [generatorState, setGeneratorState] = React.useState<generation.GenerationState>(
+    const [generationState, setGenerationState] = React.useState<generation.GenerationState>(
         generation.DEFAULT_GENERATION_STATE
     );
     const [generationId, setGenerationId] = React.useState<string>();
@@ -90,10 +89,10 @@ export const EntityEditor = ({ className }: EntityEditorProps) => {
             {entity?.name || entity?.entity_id}
             <br />
             {generationId && <GenerateStatus generationId={generationId} />}
-            <div style={SPLITTER_STYLES}>
+            <div>
                 <StructuredGenerationSettings
-                    generationState={generatorState}
-                    setGenerationState={setGeneratorState}
+                    generationState={generationState}
+                    setGenerationState={setGenerationState}
                 />
                 <div>
                     {/* TODO: add disabled field */}
@@ -103,8 +102,8 @@ export const EntityEditor = ({ className }: EntityEditorProps) => {
             <FieldsEditor
                 fields={entity?.fields || []}
                 onEdit={onEdit}
-                generatorState={generatorState}
-                setGeneratorState={setGeneratorState}
+                generationState={generationState}
+                setGenerationState={setGenerationState}
             />
         </div>
     );

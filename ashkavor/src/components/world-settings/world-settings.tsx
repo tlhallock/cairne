@@ -28,6 +28,7 @@ export const WorldSettings = ({ className }: WorldSettingsProps) => {
         generation.DEFAULT_GENERATION_STATE
     );
     const [entity, setEntity] = React.useState<openrpg.GeneratedEntity>();
+    const [refreshCounter, setRefreshCounter] = React.useState<number>(0);
 
     React.useEffect(() => {
         if (!worldId) {
@@ -41,14 +42,14 @@ export const WorldSettings = ({ className }: WorldSettingsProps) => {
 
             console.log('Found world', response.entity);
         });
-    }, [worldId]);
+    }, [worldId, refreshCounter]);
 
     const onDelete = (response: openrpg.DeleteEntityResponse) => {
         navigate('/worlds');
     };
 
     const onEdit = () => {
-        console.log('edited');
+        setRefreshCounter(refreshCounter + 1);
     };
 
     return (

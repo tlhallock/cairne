@@ -107,7 +107,7 @@ class DeleteWorld(Command):
 class ListEntityTypes(Command):
 	def execute(self) -> worlds_schema.ListEntityTypesResponse:
 		entity_types = [
-			worlds_schema.EntityType(name=entity_type.value, label=entity_type.get_label())
+			export.export_entity_type(entity_type)
 			for entity_type in spec.EntityType
 		]
 		return worlds_schema.ListEntityTypesResponse(entity_types=entity_types)

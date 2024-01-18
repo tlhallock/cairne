@@ -234,8 +234,6 @@ def get_child_input(
 def parse_object(
 	context: ParseContext, specification: spec.ObjectSpecification, raw: Any
 ) -> gen.GeneratedObject:
-	import ipdb; ipdb.set_trace()
-	
 	dict_value = parse_dict(context, raw)
 	if dict_value is None:
 		dict_value = {}

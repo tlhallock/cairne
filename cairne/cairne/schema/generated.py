@@ -10,6 +10,7 @@ import cairne.model.generated as generated_model
 import cairne.model.generation as generation_model
 import cairne.model.specification as spec
 import cairne.schema.edits as edits_schema
+import cairne.schema.worlds as worlds_schema
 from cairne.schema.base import Response
 
 
@@ -48,6 +49,7 @@ class GeneratedField(BaseModel):
 	validation_errors: List[str] = Field(default_factory=list)
 	children: Optional[List["GeneratedField"]] = Field(default_factory=list)
 	add_value_type: Optional[GeneratedValueEditor] = Field(default=None)
+	entity_dictionary_type: Optional[worlds_schema.EntityType] = Field(default=None)
 
 	# TODO: history
 	# TODO: all validations

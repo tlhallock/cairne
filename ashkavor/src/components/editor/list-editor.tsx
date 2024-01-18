@@ -9,7 +9,7 @@ import { StructuredGenerationSettings } from '../structured-generation-settings/
 import * as generation from '../../openrpg/generation';
 import { StructuredGenerationField } from '../structured-generation-field/structured-generation-field';
 import { GenerateStatus } from '../generate-status/generate-status';
-import { FIELD_STYLES } from './base';
+
 import { FieldProps } from './value-editors';
 import { Field } from './editor';
 
@@ -23,6 +23,7 @@ const StringAdder = ({ path, onEdit }: ListAdderProps) => {
     return (
         <div>
             <input type="text" value={value} onChange={(e) => setValue(e.target.value)} />
+
             <button>Add</button>
         </div>
     );
@@ -63,42 +64,37 @@ export interface AnyListAdderProps {
     onEdit: () => void;
 }
 
-const ListAdder = ({ path, add_type, onEdit }: AnyListAdderProps) => {
-    switch (add_type) {
+export const ListAdder = (props: FieldProps) => {
+    switch (props.field.add_value_type) {
         case 'string':
-            return <StringAdder path={path} onEdit={onEdit} />;
+            return <StringAdder path={props.field.edit_path} onEdit={props.onEdit} />;
         case 'boolean':
-            return <BooleanAdder path={path} onEdit={onEdit} />;
+            return <BooleanAdder path={props.field.edit_path} onEdit={props.onEdit} />;
         case 'float':
-            return <FloatAdder path={path} onEdit={onEdit} />;
+            return <FloatAdder path={props.field.edit_path} onEdit={props.onEdit} />;
         case 'integer':
-            return <IntegerAdder path={path} onEdit={onEdit} />;
+            return <IntegerAdder path={props.field.edit_path} onEdit={props.onEdit} />;
     }
     return (
         <div>
-            <label>Unknown Add Type: {add_type}</label>
+            <label>Unknown Add Type: {props.field.add_value_type}</label>
+            <div />
         </div>
     );
 };
 
-export const ListValueEditor = ({ field, onEdit }: FieldProps) => {
-    return (
-        <>
-            <div style={FIELD_STYLES}>
-                <label>{field.label}</label>
-                <div />
-                <ListAdder path={field.edit_path} add_type={field.add_value_type} onEdit={onEdit} />
-            </div>
-            {field.children?.map((value, index) => (
-                <div style={FIELD_STYLES}>
-                    <Field field={value} onEdit={onEdit} />
-
-                    {/* <div>
-                        <button>Remove</button>
-                    </div> */}
-                </div>
-            ))}
-            <div />
-        </>
-    );
-};
+// export const ListValueEditor = (props: FieldProps) => {
+//     return (
+//         <>
+//             <label>{props.field.label}</label>
+//             <div />
+//             <ListAdder path=h} add_type={} onEdit={props.onEdit} />
+//             <div />
+//             {props.field.children?.map((value, index) => (
+//                 // Maybe this should be a field list item?
+//                 // <button>Remove</button>
+//                 <Field key={index} {...props} field={value} depth={props.depth + 1} />
+//             ))}
+//         </>
+//     );
+// };

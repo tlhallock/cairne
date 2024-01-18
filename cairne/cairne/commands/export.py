@@ -55,7 +55,7 @@ def export_generated_object_child(
 	return generated_schema.GeneratedField(
 		label=label,
 		raw_value=json.dumps(generatable.raw),
-		value_js="Fill me in",
+		value_js=json.dumps(""),
 		value_type=generated_schema.GeneratedValueEditor.G_OBJECT,
 		edit_path=path,
 		choices=None, # TODO
@@ -100,7 +100,7 @@ def export_generated_list_child(
 	return generated_schema.GeneratedField(
 		label=label,
 		raw_value=json.dumps(generatable.raw),
-		value_js="Fill me in",
+		value_js=json.dumps(f"Number of elements: {len(generatable.elements)}"),
 		value_type=generated_schema.GeneratedValueEditor.G_LIST,
 		edit_path=path,
 		choices=None, # TODO
@@ -115,6 +115,10 @@ def export_generated_dictionary_child(
 	label: str,
 	generatable: generated_model.EntityDictionary,
 ) -> generated_schema.GeneratedField:
+	specification = WORLD.get(path, 0)
+	if not isinstance(specification, spec.EntityDictionarySpecification):
+		raise NotImplementedError(f"Expected entity dictionary specification at {path}")
+
 	children: list[generated_schema.GeneratedField] = []
 	if False:
 		for key, child in generatable.entities.items():
@@ -124,12 +128,13 @@ def export_generated_dictionary_child(
 	return generated_schema.GeneratedField(
 		label=label,
 		raw_value=json.dumps(generatable.raw),
-		value_js="Fill me in",
+		value_js=json.dumps(f"Number of entities: {len(generatable.entities)}"),
 		value_type=generated_schema.GeneratedValueEditor.G_ENTITIES,
 		edit_path=path,
 		choices=None, # TODO
 		validation_errors=export_validation_errors(generatable.validation_errors),
 		children=children,
+		entity_dictionary_type=export_entity_type(specification.entity_specification.entity_type),
 	)
 
 
@@ -150,6 +155,21 @@ def export_generated_boolean_child(
 	)
 
 
+def export_choices(path: spec.GeneratablePath) -> Optional[List[str]]:
+	specification = WORLD.get(path, 0)
+	choices = None
+	for validator in specification.validators:
+		if isinstance(validator, spec.OneOfLiteralValidator):
+			validator_choices = set([option[1][0] for option in validator.options if len(option[0]) > 0])
+			if choices is None:
+				choices = set(validator_choices)
+			else:
+				choices = choices.intersection(validator_choices)
+		elif isinstance(validator, spec.OneOfGeneratedValidator):
+			logger.info("TODO: OneOfGeneratedValidator choices")
+	return list(choices) if choices is not None else None
+
+
 def export_generated_string_child(
 	path: spec.GeneratablePath,
 	label: str,
@@ -161,7 +181,7 @@ def export_generated_string_child(
 		value_js=json.dumps(generatable.parsed),
 		value_type=generated_schema.GeneratedValueEditor.G_STRING,
 		edit_path=path,
-		choices=None, # TODO
+		choices=export_choices(path),
 		validation_errors=export_validation_errors(generatable.validation_errors),
 		children=None,
 	)
@@ -241,7 +261,10 @@ def export_generated_entity(
 	generated_entity: generated_model.GeneratedEntity,
 ) -> generated_schema.GeneratedEntity:
 	specification = generated_entity.entity_type.get_specification()
-	validation_context = validation.ValidationContext(validation_root=generated_entity)
+	validation_context = validation.ValidationContext(
+		validation_root=generated_entity,
+		current_path=path.model_copy(),
+	)
 	generated_entity.validation_errors = []
 	validation.validate_generated(validation_context, specification, generated_entity)
   
@@ -286,6 +309,11 @@ def export_generation(generation: generate_model.Generation) -> generate_schema.
 		entity_type=generation.entity_type,
 	)
 
+def export_entity_type(entity_type: spec.EntityType) -> worlds_schema.EntityType:
+	return worlds_schema.EntityType(
+		name=entity_type.value,
+		label=entity_type.get_label(),
+	)
 
 def export_entity_specification_field(name: str, specification: spec.EntitySpecification) -> generated_schema.EntityGenerationField:
 	return generated_schema.EntityGenerationField(

@@ -237,7 +237,7 @@ WORLD = spec.EntitySpecification(
 						validators=[
 							spec.OneOfLiteralValidator(
 								options=[
-									(archetype, set([archetype.name, archetype.value]))
+									(archetype, [archetype.value, archetype.name])
 									for archetype in character_model.Archetype
 								],
 							)
@@ -249,7 +249,7 @@ WORLD = spec.EntitySpecification(
 						validators=[
 							spec.OneOfLiteralValidator(
 								options=[
-									(gender, set([gender.name, gender.value]))
+									(gender, [gender.value, gender.name])
 									for gender in character_model.Gender
 								],
 							)
@@ -261,7 +261,7 @@ WORLD = spec.EntitySpecification(
 						validators=[
 							spec.OneOfLiteralValidator(
 								options=[
-									(marital_status, set([marital_status.name, marital_status.value]))
+									(marital_status, [marital_status.value, marital_status.name])
 									for marital_status in character_model.MaritalStatus
 								],
 							)

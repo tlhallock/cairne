@@ -18,6 +18,8 @@ import cairne.schema.generate as generate_schema
 import cairne.schema.generated as generated_schema
 import cairne.schema.worlds as worlds_schema
 from cairne.serve.data_store import Datastore
+import cairne.commands.edits as edits_commands
+import cairne.schema.edits as edits_schema
 
 # Story idea: the last human as ais take over
 # add editor settings (like include field in generation)
@@ -237,6 +239,45 @@ def generate(
 	response = command.execute()
 	return response
 
+
+# Descriptive paths?
+@app.route("/world/<world_id>/update", methods=["POST", "OPTIONS"])
+@cross_origin(origins=["*"])
+@validate()
+def replace_value(
+	world_id: uuid.UUID,
+	body: edits_schema.ReplaceRequest
+) -> edits_schema.ReplaceResponse:
+	logger.info("Replace value", world_id=world_id, body=body)
+	command = edits_commands.ReplaceValue(datastore=datastore, user="test", request=body)
+	response = command.execute()
+	return response
+
+
+@app.route("/world/<world_id>/append", methods=["POST", "OPTIONS"])
+@cross_origin(origins=["*"])
+@validate()
+def append_value(
+	world_id: uuid.UUID,
+	body: edits_schema.AppendElementRequest
+) -> edits_schema.AppendElementResponse:
+	logger.info("Append value", world_id=world_id, body=body)
+	command = edits_commands.AppendValue(datastore=datastore, user="test", request=body)
+	response = command.execute()
+	return response
+
+
+@app.route("/world/<world_id>/clear", methods=["POST", "OPTIONS"])
+@cross_origin(origins=["*"])
+@validate()
+def remove_value(
+	world_id: uuid.UUID,
+	body: edits_schema.RemoveValueRequest
+) -> edits_schema.RemoveValueResponse:
+	logger.info("Remove value", world_id=world_id, body=body)
+	command = edits_commands.RemoveValue(datastore=datastore, user="test", request=body)
+	response = command.execute()
+	return response
 
 
 # @app.route('/world/<world_id>/characters/<character_id>', methods=['GET', 'OPTIONS'])
