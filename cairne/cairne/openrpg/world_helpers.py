@@ -17,11 +17,24 @@ import cairne.model.specification as spec
 import cairne.parsing.parse_incomplete_json as parse_incomplete
 
 
+logger = get_logger(__name__)
+
+
 def get_factions(world: generated_model.GeneratedEntity) -> List[str]:
-    factions_list = typing.cast(
-        generated_model.GeneratedList, world.children["factions"]
-    )
-    return [faction.parsed for faction in factions_list.elements]
+    factions_list = typing.cast(generated_model.GeneratedList, world.children["factions"])
+    factions: List[str] = []
+    for faction in factions_list.elements:
+        if not isinstance(faction, generated_model.GeneratedString):
+            logger.warning(
+                "Unexpected type of faction to be string",
+                type=type(faction),
+                faction=faction,
+            )
+            continue
+        if faction.parsed is None:
+            continue
+        factions.append(faction.parsed)
+    return factions
 
 
 def get_theme(world: generated_model.GeneratedEntity) -> Optional[str]:
@@ -112,9 +125,24 @@ class CharacterCounts(BaseModel):
         factions = get_factions(world)
         ret = CharacterCounts(per_faction={faction: 0 for faction in factions})
 
-        for incomplete in world.children["characters"].entities.values():
+        characters = typing.cast(generated_model.EntityDictionary, world.children["characters"])
+        for incomplete in characters.entities.values():
+            if not isinstance(incomplete, generated_model.GeneratedEntity):
+                logger.warning(
+                    "Unexpected type of incomplete character to be an entity",
+                    type=type(incomplete),
+                    incomplete=incomplete,
+                )
+                continue
             ret.total += 1
             faction = incomplete.children["faction"]
+            if not isinstance(faction, generated_model.GeneratedString):
+                logger.warning(
+                    "Unexpected type of faction to be string",
+                    type=type(faction),
+                    faction=faction,
+                )
+                continue
             if faction.parsed is None:
                 continue
             if faction.parsed not in factions:

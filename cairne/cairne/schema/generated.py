@@ -121,9 +121,9 @@ class EntityGenerationField(BaseModel):
     name: str = Field()
 
 
-class EntityGenerationSchema(BaseModel):
-    fields: List[EntityGenerationField] = Field()
+# class EntityGenerationSchema(BaseModel):
+#     fields: List[EntityGenerationField] = Field()
 
 
-class GetEntitySchemaResponse(Response):
-    schema: EntityGenerationSchema = Field()
+# class GetEntitySchemaResponse(Response):
+#     schema: EntityGenerationSchema = Field()

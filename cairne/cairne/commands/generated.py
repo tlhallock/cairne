@@ -100,6 +100,7 @@ class GetEntity(Command):
             raise ValueError(f"Entity not found: {self.entity_id}")
 
         exported = export.export_generated_entity(
+            world=world,
             path=located_entity.path, generated_entity=located_entity.entity
         )
         return generated_schema.GetEntityResponse(entity=exported)

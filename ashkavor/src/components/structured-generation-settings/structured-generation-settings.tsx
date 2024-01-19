@@ -19,8 +19,6 @@ export const StructuredGenerationSettings = ({
     const location = useLocation();
     const navigate = useNavigate();
     const [generatorModel, setGeneratorModel] = React.useState<string>('gpt-3.5-turbo-1106');
-    const [generationSchema, setGenerationSchema] =
-        React.useState<openrpg.EntityGenerationSchema>();
 
     const worldId = location.pathname.split('/')[2];
     const entityType = location.pathname.split('/')[4];
@@ -32,17 +30,6 @@ export const StructuredGenerationSettings = ({
         }
         // Get generator types
     }, []);
-
-    React.useEffect(() => {
-        if (!entityType) {
-            return;
-        }
-        getGenerationSchema(worldId, entityType, (response: openrpg.GetEntitySchemaResponse) => {
-            setGenerationSchema(response.schema);
-        });
-    }, [entityType]);
-
-    console.log('schema', generationSchema);
 
     return (
         <div>

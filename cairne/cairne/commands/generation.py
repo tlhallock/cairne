@@ -74,11 +74,11 @@ class ApplyGeneration(Command):
         # return generate_schema.ApplyGenerationResponse(character=exported)
 
 
-@dataclass
-class GetEntitySchema(Command):
-    entity_type: spec.EntityType
+# @dataclass
+# class GetEntitySchema(Command):
+#     entity_type: spec.EntityType
 
-    def execute(self) -> generated_schema.GetEntitySchemaResponse:
-        entity_specification = self.entity_type.get_specification()
-        schema = export.export_entity_specification(entity_specification)
-        return generated_schema.GetEntitySchemaResponse(schema=schema)
+#     def execute(self) -> generated_schema.GetEntitySchemaResponse:
+#         entity_specification = self.entity_type.get_specification()
+#         schema = export.export_entity_specification(entity_specification)
+#         return generated_schema.GetEntitySchemaResponse(schema=schema)

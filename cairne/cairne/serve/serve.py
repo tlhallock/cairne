@@ -190,17 +190,17 @@ def list_entity_types() -> worlds_schema.ListEntityTypesResponse:
     return response
 
 
-@app.route("/schema/entity/<entity_type>", methods=["GET", "OPTIONS"])
-@cross_origin(origins=["*"])
-@validate()
-def get_generation_schema(entity_type: str) -> worlds_schema.ListEntityTypesResponse:
-    logger.info("Get entity schema", entity_type=entity_type)
-    validated_entity_type = spec.EntityType.get(entity_type)
-    command = generate_commands.GetEntitySchema(
-        datastore=datastore, user="test", entity_type=validated_entity_type
-    )
-    response = command.execute()
-    return response
+# @app.route("/schema/entity/<entity_type>", methods=["GET", "OPTIONS"])
+# @cross_origin(origins=["*"])
+# @validate()
+# def get_generation_schema(entity_type: str) -> generated_schema.GetEntitySchemaResponse:
+#     logger.info("Get entity schema", entity_type=entity_type)
+#     validated_entity_type = spec.EntityType.get(entity_type)
+#     command = generate_commands.GetEntitySchema(
+#         datastore=datastore, user="test", entity_type=validated_entity_type
+#     )
+#     response = command.execute()
+#     return response
 
 
 def create_generate_command(
@@ -210,17 +210,16 @@ def create_generate_command(
         request=request, user=user, datastore=datastore
     )
     generation = generation_builder.create_generation()
-    kwargs = dict(
-        datastore=datastore,
-        user=user,
-        request=request,
-        generation=generation,
-        world=generation_builder.get_world(),
-        entity=generation_builder.get_entity(),
-        specification=generation_builder.get_specification(),
-    )
     if generation.generator_model.generator_type == generate_model.GeneratorType.OPENAI:
-        return openai_generate.OpenAIGenerate(**kwargs)
+        return openai_generate.OpenAIGenerate(
+            datastore=datastore,
+            user=user,
+            request=request,
+            generation=generation,
+            world=generation_builder.get_world(),
+            entity=generation_builder.get_entity(),
+            specification=generation_builder.get_specification(),
+        )
     else:
         raise NotImplementedError(
             f"Unknown or not implemented generator type {generation.generator_model.generator_type}"

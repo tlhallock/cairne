@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import * as openrpg from '../../openrpg/schema/schema';
 import React from 'react';
-import { getGenerationSchema } from '../../openrpg/client';
+import { getWorlds } from '../../openrpg/client';
 import * as generation from '../../openrpg/generation';
 
 const findGenerationField = (

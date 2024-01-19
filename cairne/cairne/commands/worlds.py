@@ -81,6 +81,7 @@ class GetWorld(Command):
         if world is None:
             raise ValueError(f"World not found: {self.world_id}")
         exported = export.export_generated_entity(
+            world=world,
             path=spec.GeneratablePath(path_elements=[]),
             generated_entity=world,
         )

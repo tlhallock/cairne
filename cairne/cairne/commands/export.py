@@ -2,7 +2,7 @@ import json
 import typing
 import uuid
 from dataclasses import dataclass, field
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Sized
 
 from structlog import get_logger
 
@@ -166,7 +166,7 @@ def export_choices(path: spec.GeneratablePath) -> Optional[List[str]]:
     for validator in specification.validators:
         if isinstance(validator, spec.OneOfLiteralValidator):
             validator_choices = set(
-                [option[1][0] for option in validator.options if len(option[0]) > 0]
+                [option[1][0] for option in validator.options if isinstance(option[0], Sized) and len(option[0]) > 0]
             )
             if choices is None:
                 choices = set(validator_choices)
@@ -263,15 +263,15 @@ def export_generated_child(
 
 
 def export_generated_entity(
+    world: generated_model.GeneratedEntity,
     path: spec.GeneratablePath,
     generated_entity: generated_model.GeneratedEntity,
 ) -> generated_schema.GeneratedEntity:
     specification = generated_entity.entity_type.get_specification()
     validation_context = validation.ValidationContext(
-        validation_root=generated_entity,
+        world=world,
         current_path=path.model_copy(),
     )
-    generated_entity.validation_errors = []
     validation.validate_generated(validation_context, specification, generated_entity)
 
     # TODO: This doesn't return the validation errors for the entity itself
@@ -328,23 +328,23 @@ def export_entity_type(entity_type: spec.EntityType) -> worlds_schema.EntityType
     )
 
 
-def export_entity_specification_field(
-    name: str, specification: spec.EntitySpecification
-) -> generated_schema.EntityGenerationField:
-    return generated_schema.EntityGenerationField(
-        name=name,
-    )
 
+# def export_entity_specification_field(
+#     name: str, specification: spec.GeneratableSpecification
+# ) -> generated_schema.EntityGenerationField:
+#     return generated_schema.EntityGenerationField(
+#         name=name,
+#    )
 
-def export_entity_specification(
-    specification: spec.EntitySpecification,
-) -> generated_schema.EntityGenerationSchema:
-    return generated_schema.EntityGenerationSchema(
-        fields=[
-            export_entity_specification_field(name, specification)
-            for name, specification in specification.children.items()
-        ],
-    )
+# def export_entity_specification(
+#     specification: spec.EntitySpecification,
+# ) -> generated_schema.EntityGenerationSchema:
+#     return generated_schema.EntityGenerationSchema(
+#         fields=[
+#             export_entity_specification_field(name, specification)
+#             for name, specification in specification.children.items()
+#         ],
+#     )
 
 
 # def export_generation(path: generated_model.GeneratablePath, generated_entity: generated_model.GeneratedEntity) -> generated_schema.GeneratedEntity:

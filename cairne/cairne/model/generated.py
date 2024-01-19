@@ -302,7 +302,7 @@ class GeneratedList(GeneratedBase):
 
 
 class GeneratedEntity(GeneratedObject):
-    generated_type: Literal["entity"] = Field(default_factory=lambda: "entity")
+    generated_type: Literal["entity"] = Field(default_factory=lambda: "entity")  # type: ignore
     entity_id: uuid.UUID = Field(default_factory=uuid.uuid4)
     entity_type: spec.EntityType = Field()
     # entity type?
