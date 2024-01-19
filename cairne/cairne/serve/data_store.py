@@ -15,10 +15,11 @@ from cairne.model.generated import Generated
 
 
 class Datastore(BaseModel):
-    worlds: Dict[uuid.UUID, model_generated.GeneratedEntity] = field(
+    worlds: Dict[uuid.UUID, model_generated.GeneratedEntity] = Field(
         default_factory=dict
     )
-    generations: Dict[uuid.UUID, Any] = field(default_factory=dict)
+    generations: Dict[uuid.UUID, Any] = Field(default_factory=dict)
+    generation_threads: Dict[uuid.UUID, Any] = Field(default_factory=dict, ignore=True)
 
     @staticmethod
     def load() -> "Datastore":

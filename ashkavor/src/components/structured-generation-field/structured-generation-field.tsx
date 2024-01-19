@@ -32,21 +32,9 @@ export const StructuredGenerationField = ({
     const entityType = location.pathname.split('/')[4];
     const entityId = location.pathname.split('/')[5];
 
-    const [generationSchema, setGenerationSchema] =
-        React.useState<openrpg.EntityGenerationSchema>();
-    React.useEffect(() => {
-        if (!entityType) {
-            return;
-        }
-        getGenerationSchema(worldId, entityType, (response: openrpg.GetEntitySchemaResponse) => {
-            setGenerationSchema(response.schema);
-        });
-    }, [entityType]);
-
-    const field = findGenerationField(generationSchema, generatedField);
-    const isGenerated = generation.isFieldGenerated(generationState, field?.name);
+    const isGenerated = false; // generation.isFieldGenerated(generationState, field?.name);
     const toggleGenerate = () => {
-        setGenerationState(generation.toggleField(generationState, field?.name));
+        // setGenerationState(generation.toggleField(generationState, field?.name));
     };
 
     // Need to also get the generation result....
@@ -58,7 +46,7 @@ export const StructuredGenerationField = ({
                 type="checkbox"
                 checked={isGenerated}
                 onChange={toggleGenerate}
-                disabled={!field}
+                disabled={true}
             />
         </div>
     );

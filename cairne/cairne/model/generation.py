@@ -5,7 +5,7 @@ import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, Literal, Annotated
 
 from pydantic import BaseModel, Field
 from structlog import get_logger
@@ -15,7 +15,7 @@ import cairne.model.generated as generated_model
 import cairne.model.specification as spec
 import cairne.parsing.parse_incomplete_json as parse_incomplete
 
-# TODO: rename this file to generate?
+# TODO: rename this file to generate...
 
 logger = get_logger(__name__)
 
@@ -81,7 +81,7 @@ class GenerationRequestParameters(BaseModel):
     top_p: Optional[float] = Field(default=None)
     frequency_penalty: Optional[float] = Field(default=None)
     presence_penalty: Optional[float] = Field(default=None)
-    seed: Optional[int] = Field(default=None)
+    seed: Optional[int] = Field(default=1776)
 
 
 class Instruction(BaseModel):
@@ -109,22 +109,22 @@ class GenerationVariables(BaseModel):
 
     # TODO: maybe a filled instruction is different?
     def format(self, unfilled_instructions: List[Instruction]) -> List[Instruction]:
-        filled_instructions = []
+        filled_instructions: List[Instruction] = []
         # Should this be a set?
-        remaining_instructions = unfilled_instructions.copy()
 
         while True:
-            to_remove: List[Instruction] = []
+            remaining_instructions: List[Instruction] = []
             for instruction in unfilled_instructions:
-                if self.can_evaluate(instruction):
-                    to_remove.append(instruction)
-                    formatted = instruction.format(self.variables)
-                    # self.variables[variable.name] = variable.value.format(**variables)
-                    filled_instructions.append(Instruction(message=formatted))
-            for instruction in to_remove:
-                remaining_instructions.remove(instruction)
-            if len(remaining_instructions) == 0:
+                if not self.can_evaluate(instruction):
+                    remaining_instructions.append(instruction)
+                    continue
+
+                formatted = instruction.format(self.variables)
+                # self.variables[variable.name] = variable.value.format(**variables)
+                filled_instructions.append(Instruction(message=formatted))
+            if len(remaining_instructions) == len(unfilled_instructions):
                 break
+            unfilled_instructions = remaining_instructions
         if len(remaining_instructions) > 0:
             logger.warning(f"Could not fill instructions: {remaining_instructions}")
         return filled_instructions
@@ -133,6 +133,35 @@ class GenerationVariables(BaseModel):
 class TargetFields(BaseModel):
     all: Optional[bool] = Field(default=None)
     fields: List[str] = Field(default_factory=list)
+    
+
+class BaseGenerationResult(BaseModel):
+    raw_text: str = Field()
+    parsed: Optional[generated_model.Generated] = Field(default=None)
+
+
+class OpenAIGenerationResult(BaseGenerationResult):
+    result_type: Literal["openai"] = Field(default_factory=lambda: "openai")
+
+    completion_tokens: int = Field()
+    prompt_tokens: int = Field()
+    total_tokens: int = Field()
+    finish_reason: str = Field()
+
+
+class HuggingFaceGenerationResult(BaseGenerationResult):
+    result_type: Literal["hugging_face"] = Field(default_factory=lambda: "hugging_face")
+
+
+GenerateResult = Annotated[
+    Union[
+        OpenAIGenerationResult,
+        HuggingFaceGenerationResult,
+    ],
+    Field(discriminator="result_type"),
+]
+    
+    
 
 
 class Generation(BaseModel):
@@ -143,6 +172,7 @@ class Generation(BaseModel):
     entity_id: uuid.UUID = Field()
     generation_type: GenerationType = Field()
     entity_type: spec.EntityType = Field()
+    target_path: spec.GeneratablePath = Field()
 
     generator_model: GeneratorModel = Field()
     parameters: GenerationRequestParameters = Field(
@@ -166,6 +196,14 @@ class Generation(BaseModel):
 
     input_tokens: Optional[int] = Field(default=None)
     output_tokens: Optional[int] = Field(default=None)
+    
+    result: Optional[GenerateResult] = Field(default=None)
 
     # Need to store the result
     # TODO: need to store the location to put the result? world id, entity id
+    
+    def as_source(self) -> generated_model.GenerationSource:
+        return generated_model.GenerationSource(
+            source_type=generated_model.GenerationSourceType.MODEL_CALL,
+        )
+

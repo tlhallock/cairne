@@ -16,6 +16,7 @@ import cairne.model.generated as gen
 import cairne.model.parsing as parsing
 import cairne.model.specification as spec
 import cairne.parsing.parse_incomplete_json as parse_incomplete
+from cairne.model.world_spec import WORLD
 
 logger = get_logger(__name__)
 
@@ -166,80 +167,90 @@ def validate_one_of_literal(
     )
 
 
+def validate_one_of_generated_list_of_strings(
+    context: ValidationContext,
+    generated_list: gen.GeneratedList,
+    parsed: gen.GeneratedBase,
+) -> None:
+    possible_values: List[str] = []
+    for element in generated_list.elements:
+        generated_string = typing.cast(gen.GeneratedString, element)
+        if generated_string.parsed is None:
+            continue
+        possible_values.append(generated_string.parsed)
+    string_to_validate = typing.cast(gen.GeneratedString, parsed).parsed
+    if string_to_validate is None:
+        # This can have its own required validator
+        return
+    for possible_value in possible_values:
+        if possible_value.lower() == string_to_validate.lower():
+            parsed.result = possible_value
+            return
+    context.add_error(
+        spec.ValidationError(
+            path=context.create_path(),
+            message=f"field must be one of [{possible_values}], found {string_to_validate}",
+        )
+    )
+
 def validate_one_of_generated(
     context: ValidationContext,
     specification: spec.OneOfGeneratedValidator,
     parsed: gen.GeneratedBase,
 ) -> None:
-    return
     # We need to get this from the world...
-    generated_options: gen.Generated = context.validation_root.get(
-        specification.path, 0
-    )
+    generated_options: gen.Generated = context.world.get(specification.path, 0)
+    generated_options_specification = WORLD.get(specification.path, 0)
 
-    if isinstance(generated_options, gen.GeneratedList):
-        generated_list = typing.cast(gen.GeneratedList, generated_options)
-        list_specification = typing.cast(spec.ListSpecification, specification)
-        if not isinstance(
-            list_specification.element_specification, spec.ValueSpecification
-        ):
-            context.add_error(
-                spec.ValidationError(
-                    path=context.create_path(),
-                    message=f"Only know how to validate generated lists of values, not {list_specification.element_specification}",
-                )
-            )
-            return
-        element_specification = typing.cast(
-            spec.ValueSpecification, list_specification.element_specification
-        )
-        if element_specification.parser.parser_name == spec.ParserName.STRING:
-            possible_values = []
-            for element in generated_list.elements:
-                generated_string = typing.cast(gen.GeneratedString, element)
-                if generated_string.parsed is None:
-                    continue
-                possible_values.append(generated_string.parsed)
-            string_to_validate = typing.cast(gen.GeneratedString, parsed).parsed
-            if string_to_validate is None:
-                # context.add_error(
-                # 	spec.ValidationError(
-                # 		path=context.create_path(),
-                # 		message=f"Value must not be empty, possible values: {possible_values}"
-                # 	)
-                # )
-                return
-            for possible_value in possible_values:
-                if possible_value.lower() == string_to_validate.lower():
-                    parsed.result = possible_value
-                    return
-            context.add_error(
-                spec.ValidationError(
-                    path=context.create_path(),
-                    message=f"field must be one of [{generated_options}], found {string_to_validate}",
-                )
-            )
-        elif element_specification.parser.parser_name == spec.ParserName.FLOAT:
-            raise NotImplementedError()
-        elif element_specification.parser.parser_name == spec.ParserName.INTEGER:
-            raise NotImplementedError()
-        elif element_specification.parser.parser_name == spec.ParserName.BOOLEAN:
-            raise NotImplementedError()
-        else:
-            context.add_error(
-                spec.ValidationError(
-                    path=context.create_path(),
-                    message=f"Only know how to validate generated lists of values, not {list_specification.element_specification}",
-                )
-            )
-            return
-    else:
+    if not isinstance(generated_options, gen.GeneratedList):
         context.add_error(
             spec.ValidationError(
                 path=context.create_path(),
                 message=f"Only know how to validate generated lists, not {generated_options}",
             )
         )
+        return
+    generated_list = typing.cast(gen.GeneratedList, generated_options)
+    if not isinstance(generated_options_specification, spec.ListSpecification):
+        context.add_error(
+            spec.ValidationError(
+                path=context.create_path(),
+                message=f"Only know how to validate generated lists, not {generated_options_specification}",
+            )
+        )
+    list_specification = typing.cast(spec.ListSpecification, generated_options_specification)
+    if not isinstance(
+        list_specification.element_specification, spec.ValueSpecification
+    ):
+        context.add_error(
+            spec.ValidationError(
+                path=context.create_path(),
+                message=f"Only know how to validate generated lists of values, not {list_specification.element_specification}",
+            )
+        )
+        return
+    element_specification = typing.cast(spec.ValueSpecification, list_specification.element_specification)
+    
+    if element_specification.parser.parser_name == spec.ParserName.STRING:
+        validate_one_of_generated_list_of_strings(
+            context=context,
+            generated_list=generated_list,
+            parsed=parsed,
+        )
+    elif element_specification.parser.parser_name == spec.ParserName.FLOAT:
+        raise NotImplementedError()
+    elif element_specification.parser.parser_name == spec.ParserName.INTEGER:
+        raise NotImplementedError()
+    elif element_specification.parser.parser_name == spec.ParserName.BOOLEAN:
+        raise NotImplementedError()
+    else:
+        context.add_error(
+            spec.ValidationError(
+                path=context.create_path(),
+                message=f"Only know how to validate generated lists of values, not {list_specification.element_specification}",
+            )
+        )
+        return
 
 
 def validate_field(
@@ -318,9 +329,6 @@ def validate_generated(
                 )
     elif isinstance(specification, spec.ListSpecification):
         if not isinstance(generatable, gen.GeneratedList):
-            import ipdb
-
-            ipdb.set_trace()
             context.add_error(
                 spec.ValidationError(
                     path=context.create_path(),

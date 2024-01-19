@@ -54,16 +54,7 @@ WORLD = spec.EntitySpecification(
             entity_specification=spec.EntitySpecification(
                 entity_type=spec.EntityType.REGION,
                 generation=spec.GenerationSpecification(
-                    instructions=[
-                        "Create characters for a game with setting: '{theme}'.",
-                        "Character names should be unique and memorable.",
-                        "Character names should not be well-known historical figures.",
-                        "Character names should be appropriate for the setting.",
-                        "Possible factions: [{possible_factions}].",
-                        "Possible genders: [{possible_genders}].",
-                        "Possible archetypes: [{possible_archetypes}].",
-                        "The existing characters are: {existing_characters}.",
-                    ],
+                    instructions=[],
                 ),
                 children={
                     "name": spec.ValueSpecification(
@@ -314,6 +305,18 @@ WORLD = spec.EntitySpecification(
         ),
         spec.EntityType.CHARACTER.get_field_name(): spec.EntityDictionarySpecification(
             entity_specification=spec.EntitySpecification(
+                generation=spec.GenerationSpecification(
+                    instructions=[
+                        "Create characters for a game with setting: '{theme}'.",
+                        "Character names should be unique and memorable.",
+                        "Character names should not be well-known historical figures.",
+                        "Character names should be appropriate for the setting.",
+                        "Possible factions: [{possible_factions}].",
+                        "Possible genders: [{possible_genders}].",
+                        "Possible archetypes: [{possible_archetypes}].",
+                        "The existing characters are: {existing_characters}.",
+                    ],
+                ),
                 entity_type=spec.EntityType.CHARACTER,
                 children={
                     "name": spec.ValueSpecification(

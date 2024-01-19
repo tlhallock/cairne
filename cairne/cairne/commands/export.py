@@ -57,6 +57,7 @@ def export_generated_object_child(
         value_js=json.dumps(""),
         value_type=generated_schema.GeneratedValueEditor.G_OBJECT,
         edit_path=path,
+        edit_path_key=path.as_str(),
         choices=None,  # TODO
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=children,
@@ -106,6 +107,7 @@ def export_generated_list_child(
         value_js=json.dumps(f"Number of elements: {len(generatable.elements)}"),
         value_type=generated_schema.GeneratedValueEditor.G_LIST,
         edit_path=path,
+        edit_path_key=path.as_str(),
         choices=None,  # TODO
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=children,
@@ -134,6 +136,7 @@ def export_generated_dictionary_child(
         value_js=json.dumps(f"Number of entities: {len(generatable.entities)}"),
         value_type=generated_schema.GeneratedValueEditor.G_ENTITIES,
         edit_path=path,
+        edit_path_key=path.as_str(),
         choices=None,  # TODO
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=children,
@@ -154,6 +157,7 @@ def export_generated_boolean_child(
         value_js=json.dumps(generatable.parsed),
         value_type=generated_schema.GeneratedValueEditor.G_BOOLEAN,
         edit_path=path,
+        edit_path_key=path.as_str(),
         choices=None,  # TODO
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=None,
@@ -174,7 +178,15 @@ def export_choices(path: spec.GeneratablePath) -> Optional[List[str]]:
                 choices = choices.intersection(validator_choices)
         elif isinstance(validator, spec.OneOfGeneratedValidator):
             logger.info("TODO: OneOfGeneratedValidator choices")
-    return list(choices) if choices is not None else None
+    if not choices:
+        return None
+    return [
+        generated_schema.GeneratedFieldChoice(
+            label=choice,
+            value=choice,
+        )
+        for choice in choices
+    ]
 
 
 def export_generated_string_child(
@@ -188,6 +200,7 @@ def export_generated_string_child(
         value_js=json.dumps(generatable.parsed),
         value_type=generated_schema.GeneratedValueEditor.G_STRING,
         edit_path=path,
+        edit_path_key=path.as_str(),
         choices=export_choices(path),
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=None,
@@ -205,6 +218,7 @@ def export_generated_integer_child(
         value_js=json.dumps(generatable.parsed),
         value_type=generated_schema.GeneratedValueEditor.G_INTEGER,
         edit_path=path,
+        edit_path_key=path.as_str(),
         choices=None,  # TODO
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=None,
@@ -222,6 +236,7 @@ def export_generated_float_child(
         value_js=json.dumps(generatable.parsed),
         value_type=generated_schema.GeneratedValueEditor.G_FLOAT,
         edit_path=path,
+        edit_path_key=path.as_str(),
         choices=None,  # TODO
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=None,

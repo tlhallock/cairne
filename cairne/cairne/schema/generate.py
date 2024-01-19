@@ -5,7 +5,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
-import cairne.model.generated as generated
+import cairne.model.generated as generated_model
 import cairne.model.generation as generation_model
 import cairne.model.specification as spec
 from cairne.schema.base import Response
@@ -18,22 +18,7 @@ from cairne.schema.base import Response
 #     # mean_duration: datetime.timedelta = Field(..., description="Mean duration of generation")
 
 
-# class GenerationResult(BaseModel):
-#     generation_id: uuid.UUID = Field()
-#     begin_time: datetime.datetime = Field()
-#     end_time: datetime.datetime = Field()
-#     prompt: str = Field()  # could be a list of messages...
-#     raw_text: str = Field()
 
-#     json_text: Optional[str] = Field()
-#     completed_json: Optional[str] = Field()
-#     # options: List[GeneratedItem] = Field(default_factory=list)
-#     # parsed: "Generatable" = Field()
-
-
-# class GenerationTargetPath(BaseModel):
-#     generatable_id: uuid.UUID = Field()
-#     field: str = Field()
 
 
 class GenerationListItem(BaseModel):
@@ -43,15 +28,30 @@ class GenerationListItem(BaseModel):
     status: generation_model.GenerationStatus = Field()
 
 
+# class GenerationTargetPath(BaseModel):
+#     generatable_id: uuid.UUID = Field()
+#     field: str = Field()
+
+
+
+
+class GenerationResult(BaseModel):
+    raw_text: str = Field()
+    validated: generated_model.Generated = Field()
+
+
 class Generation(BaseModel):
     generation_id: uuid.UUID = Field()
     world_id: uuid.UUID = Field()
     entity_id: uuid.UUID = Field()
     entity_type: spec.EntityType = Field()
+    target_path: spec.GeneratablePath = Field()
 
     begin_time: datetime.datetime = Field()
     end_time: Optional[datetime.datetime] = Field()
     status: generation_model.GenerationStatus = Field()
+
+    result: Optional[GenerationResult] = Field(default=None)
 
 
 class JsonStructureRequest(BaseModel):

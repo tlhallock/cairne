@@ -119,17 +119,17 @@ export const deleteEntity = (
         .catch(onError);
 };
 
-export const getGenerationSchema = (
-    worldId: openrpg.WorldId,
-    entityType: openrpg.EntityType,
-    onSchema: (response: openrpg.GetEntitySchemaResponse) => void,
-    onError: (error: Error) => void = (error: Error) => console.log(error)
-) => {
-    axios
-        .get('/schema/entity/' + entityType)
-        .then((r) => onSchema(r.data))
-        .catch(onError);
-};
+// export const getGenerationSchema = (
+//     worldId: openrpg.WorldId,
+//     entityType: openrpg.EntityType,
+//     onSchema: (response: openrpg.GetEntitySchemaResponse) => void,
+//     onError: (error: Error) => void = (error: Error) => console.log(error)
+// ) => {
+//     axios
+//         .get('/schema/entity/' + entityType)
+//         .then((r) => onSchema(r.data))
+//         .catch(onError);
+// };
 
 export const structuredGenerate = (
     generateRequest: openrpg.GenerateRequest,

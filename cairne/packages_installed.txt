@@ -15,3 +15,4 @@ mypy
 regret:
     black
     black-with-tabs
+python-dotenv

@@ -23,17 +23,10 @@ import cairne.schema.characters as characters_schema
 import cairne.schema.generate as generate_schema
 import cairne.schema.worlds as worlds_schema
 from cairne.commands.base import Command
-from cairne.commands.generate.base import BaseGenerate
+from cairne.commands.generate.base import BaseGenerate, parse_results
+
 
 logger = get_logger()
-
-
-class OpenAIGenerationResult(BaseModel):
-    response: str = Field()
-    input_tokens: int = Field()
-    output_tokens: int = Field()
-    time_taken: datetime.timedelta = Field()
-    finish_reason: str = Field()
 
 
 class OpenAIService:
@@ -51,7 +44,7 @@ class OpenAIService:
 
     def generate_json(
         self, generation: generate_model.Generation
-    ) -> OpenAIGenerationResult:
+    ) -> generate_model.OpenAIGenerationResult:
         kwargs = dict(
             model="gpt-3.5-turbo-1106",  # TODO: This is set on the generation
             messages=[
@@ -64,35 +57,52 @@ class OpenAIService:
             max_tokens=generation.parameters.max_tokens,
         )
         logger.info("Calling openai", kwargs=kwargs, generation=generation)
-        import ipdb
-
-        ipdb.set_trace()
 
         start_time = datetime.datetime.now()
         from openai.types.chat.chat_completion import ChatCompletion
 
-        completion = typing.cast(ChatCompletion, self.client.chat.completions.create(**kwargs))  # type: ignore
-        generation_time = datetime.datetime.now() - start_time
+        if False:
+            completion = typing.cast(ChatCompletion, self.client.chat.completions.create(**kwargs))  # type: ignore
+            generation_time = datetime.datetime.now() - start_time
 
-        finish_reason = completion.choices[0].finish_reason
-        complete = completion.choices[0].finish_reason == "stop"
-        content = completion.choices[0].message.content
-
+            finish_reason = completion.choices[0].finish_reason
+            complete = completion.choices[0].finish_reason == "stop"
+            content = completion.choices[0].message.content
+            
+            
+            completion_tokens=completion.usage.completion_tokens,
+            prompt_tokens=completion.usage.prompt_tokens,
+            total_tokens=completion.usage.total_tokens,
+        
+            with open("output/reponses.txt", "a") as f:
+                f.write(content + "\n")
+        else:
+            generation_time = datetime.timedelta(seconds=0)
+            finish_reason = "stop"
+            complete = True
+            content = '{\n  "name": "Rhiannon Blackwood",\n  "faction": "cowboys",\n  "archetype": "explorer",\n  "gender": "female",\n  "description": "A sharpshooting outlaw known for her quick wit and daring heists.",\n  "appearance": "Tall and lean with raven-black hair and piercing green eyes. Wears a tattered leather duster and a wide-brimmed hat.",\n  "history": "Born into a family of cattle rustlers, Rhiannon learned to ride and shoot from a young age. After a conflict with a rival gang, she went solo, making a name for herself as the fastest draw in the West.",\n  "origin": "Grew up in the desolate Badlands, where she honed her survival skills and developed a fierce independence.",\n  "strengths": ["Deadly accuracy with a revolver", "Navigates the treacherous desert terrain with ease"],\n  "weaknesses": ["Stubborn and distrustful of others", "Haunted by a tragic event from her past"],\n  "fears": ["Betrayal by those she trusts", "Losing her freedom to the law"],\n  "goals": ["To uncover the truth behind her family\'s feud with a notorious outlaw gang", "Find a place where she can live without constantly looking over her shoulder"]\n}'
+            
+            completion_tokens=0
+            prompt_tokens=0
+            total_tokens=0
+        
+        generation.end_time = datetime.datetime.utcnow()
+        
+        # finish reason can be "stop" or hopefully not "length".
         logger.info(
             "Generated JSON:",
             generation_time=generation_time,
             finish_reason=finish_reason,
             content=content,
         )
-        # TODO: add generation results...
 
-        # finish reason can be "stop" or hopefully not "length".
-        # record used tokens
-        return OpenAIGenerationResult(
+        return generate_model.OpenAIGenerationResult(
+            raw_text=content,
+            validated=None,
             response=content,  # type: ignore
-            input_tokens=0,  # TODO
-            output_tokens=0,  # TODO
-            time_taken=generation_time,
+            completion_tokens=completion_tokens,
+            prompt_tokens=prompt_tokens,
+            total_tokens=total_tokens,
             finish_reason=finish_reason,
         )
 
@@ -118,29 +128,28 @@ def run_openai_generation(generation: generate_model.Generation):
         service = get_openai_service()
 
         result = service.generate_json(generation)
-        # TODO: parse the results...
+        parse_results(generation, result)
 
         generation.end_time = datetime.datetime.utcnow()
         generation.status = generate_model.GenerationStatus.COMPLETE
-        logger.info(
-            "Completed OpenAI generation", generation_id=generation.generation_id
-        )
+        logger.info("Completed OpenAI generation", generation_id=generation.generation_id)
     except Exception as e:
         logger.exception(
             "Error running OpenAI generation",
             generation_id=generation.generation_id,
             excepttion=e,
         )
-        generation.status = generate_model.GenerationStatus.ERROR
         generation.end_time = datetime.datetime.utcnow()
+        generation.status = generate_model.GenerationStatus.ERROR
         raise
+        
 
 
 class OpenAIGenerate(BaseGenerate):
-    def spawn_generation(self) -> None:
+    def spawn_generation(self) -> threading.Thread:
         # Should rate limit this somehow...
         # We need to remember this thread so we can cancel it later
-        threading.Thread(target=run_openai_generation, args=(self.generation,)).start()
+        return threading.Thread(target=run_openai_generation, args=(self.generation,)).start()
 
 
 # class InstructionGenerationContext:

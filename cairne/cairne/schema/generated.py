@@ -38,6 +38,11 @@ class GenerationState(BaseModel):
     pass
 
 
+class GeneratedFieldChoice(BaseModel):
+    label: str = Field()
+    value: str = Field()
+
+
 class GeneratedField(BaseModel):
     label: str = Field()
     raw_value: str = Field()
@@ -45,7 +50,8 @@ class GeneratedField(BaseModel):
     # display_path: List[str] = Field(default_factory=list)
     value_type: GeneratedValueEditor = Field()
     edit_path: spec.GeneratablePath = Field()
-    choices: Optional[List[str]] = Field(default=None)
+    edit_path_key: str = Field()
+    choices: Optional[List[GeneratedFieldChoice]] = Field(default=None)
     validation_errors: List[str] = Field(default_factory=list)
     children: Optional[List["GeneratedField"]] = Field(default_factory=list)
     add_value_type: Optional[GeneratedValueEditor] = Field(default=None)
@@ -117,8 +123,8 @@ class DeleteEntityResponse(Response):
     pass
 
 
-class EntityGenerationField(BaseModel):
-    name: str = Field()
+# class EntityGenerationField(BaseModel):
+#     name: str = Field()
 
 
 # class EntityGenerationSchema(BaseModel):

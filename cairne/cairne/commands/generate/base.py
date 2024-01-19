@@ -12,7 +12,6 @@ import cairne.commands.export as export
 import cairne.model.character as characters
 import cairne.model.character as character_model
 import cairne.model.generated as generated_model
-import cairne.model.generation as generation_model
 import cairne.model.generation as generate_model
 import cairne.model.specification as spec
 import cairne.model.world as worlds
@@ -23,6 +22,9 @@ import cairne.schema.worlds as worlds_schema
 from cairne.commands.base import Command
 from cairne.model.world_spec import WORLD
 from cairne.serve.data_store import Datastore
+import cairne.model.parsing as parsing
+import cairne.model.validation as validation
+import threading
 
 logger = get_logger()
 
@@ -35,6 +37,7 @@ class GenerationBuilder:
     _world: Optional[generated_model.GeneratedEntity] = field(default=None)
     _entity: Optional[generated_model.GeneratedEntity] = field(default=None)
     _specification: Optional[spec.GeneratableSpecification] = field(default=None)
+    _target_path: Optional[spec.GeneratablePath] = field(default=None)
 
     def get_world(self) -> generated_model.GeneratedEntity:
         if self._world is None:
@@ -51,6 +54,7 @@ class GenerationBuilder:
             )
             if located_entity is None:
                 raise ValueError(f"Entity '{self.request.entity_id}' not found")
+            self._target_path = located_entity.path
             self._entity = located_entity.entity
             self._specification = WORLD.get(located_entity.path, 0)
         return self._entity
@@ -59,6 +63,11 @@ class GenerationBuilder:
         if self._specification is None:
             self.get_entity()
         return self._specification  # type: ignore
+    
+    def get_target_path(self) -> spec.GeneratablePath:
+        if self._target_path is None:
+            self.get_entity()
+        return self._target_path
 
     def create_json_structure(self) -> Optional[generate_model.JsonStructure]:
         fields = self.request.fields_to_generate
@@ -91,6 +100,8 @@ class GenerationBuilder:
         if requested_parameters is None:
             return default_parameters
 
+        if requested_parameters.seed is None:
+            requested_parameters.seed = default_parameters.seed
         # if requested_parameters.top_p is None:
         #     requested_parameters.top_p = default_parameters.top_p
         # if requested_parameters.frequency_penalty is None:
@@ -116,8 +127,8 @@ class GenerationBuilder:
             return requested_messages
 
         return [
-            generation_model.GenerationChatMessage(
-                role=generation_model.ChatRole.SYSTEM,
+            generate_model.GenerationChatMessage(
+                role=generate_model.ChatRole.SYSTEM,
                 message="You are a game developer, skilled in creating engaging, open-world plots full of suspense.",
             ),
             generate_model.GenerationChatMessage(
@@ -175,19 +186,19 @@ class GenerationBuilder:
             instruction = generate_model.Instruction(
                 message=f"Please format your response as JSON. For example: {example}"
             )
-            instructions.append(instruction)
+            formatted.append(instruction)
         return formatted
 
     def create_generator_model(self) -> generate_model.GeneratorModel:
         requested_model = self.request.generator_model
         if requested_model is not None:
             return requested_model
-        return generation_model.GeneratorModel(
+        return generate_model.GeneratorModel(
             generator_type=generate_model.GeneratorType.OPENAI,
             g_model_id="gpt-3.5-turbo-1106",
         )
 
-    def create_generation(self) -> generation_model.Generation:
+    def create_generation(self) -> generate_model.Generation:
         generation_variables = self.create_generation_variables()
         # Are there differences between instructions and prompt messages?
         instructions = self.create_instructions(generation_variables)
@@ -196,12 +207,12 @@ class GenerationBuilder:
         parameters = self.create_parameters()
         generator_model = self.create_generator_model()
 
-        return generation_model.Generation(
+        return generate_model.Generation(
             generation_id=uuid.uuid4(),
             world_id=self.get_world().entity_id,
             entity_id=self.get_entity().entity_id,
             entity_type=self.get_entity().entity_type,
-            generation_type=generation_model.GenerationType.TEXT,
+            generation_type=generate_model.GenerationType.TEXT,
             status=generate_model.GenerationStatus.QUEUED,
             generator_model=generator_model,
             json_structure=json_structure,
@@ -213,7 +224,17 @@ class GenerationBuilder:
             end_time=None,
             filled_instructions=instructions,
             generation_variables=generation_variables,
+            target_path=self.get_target_path(),
         )
+
+def parse_results(
+    generation: generate_model.Generation,
+    result: generate_model.BaseGenerationResult,
+) -> None:
+    context = parsing.ParseContext(source=generation.as_source())
+    generated = parsing.parse(context, WORLD, raw=result.raw_text)
+    result.parsed = generated
+    generation.result = result
 
 
 @dataclass
@@ -224,14 +245,17 @@ class BaseGenerate(Command):
     entity: Optional[generated_model.GeneratedEntity] = Field(default=None)
     specification: Optional[spec.GeneratableSpecification] = Field(default=None)
 
-    def spawn_generation(self) -> None:
+    def spawn_generation(self) -> threading.Thread:
         raise NotImplementedError()
 
     def execute(self) -> generate_schema.GenerateResponse:
         self.datastore.generations[self.generation.generation_id] = self.generation
-        self.datastore.save()
+        # self.datastore.save()
 
-        self.spawn_generation()
+        thread = self.spawn_generation()
+        self.datastore.generation_threads[self.generation.generation_id] = thread
+        # TODO: Where is this removed? Maybe the thread should add itself with a context manager?
+        self.datastore.save()
 
         return generate_schema.GenerateResponse(
             generation_id=self.generation.generation_id

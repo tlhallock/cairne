@@ -28,7 +28,7 @@ class GeneratablePathElement(BaseModel):
         elif self.index is not None:
             return f"[{self.index}]"
         elif self.entity_id is not None:
-            return f"[self.entity_id]"
+            return f'["{self.entity_id}"]'
         else:
             raise ValueError(f"Invalid path element: {self}")
 
@@ -318,7 +318,8 @@ class ValueSpecification(GeneratableSpecification):
 
     def create_example(self) -> Any:
         if self.parser.parser_name == ParserName.STRING:
-            return "Example string"
+            # We might have to set this to be one of the one of validator choices
+            return "string"
         elif self.parser.parser_name == ParserName.FLOAT:
             return 29.4
         elif self.parser.parser_name == ParserName.INTEGER:

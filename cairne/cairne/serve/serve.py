@@ -237,6 +237,20 @@ def generate(body: generate_schema.GenerateRequest) -> generate_schema.GenerateR
     return response
 
 
+@app.route("/generation/<generation_id>", methods=["GET", "OPTIONS"])
+@cross_origin(origins=["*"])
+@validate()
+def get_generation(
+    generation_id: uuid.UUID,
+) -> generate_schema.GetGenerationResponse:
+    logger.info("Get generation", generation_id=generation_id)
+    command = generate_commands.GetGeneration(
+        datastore=datastore, user="test", generation_id=generation_id
+    )
+    response = command.execute()
+    return response
+
+
 # Descriptive paths?
 @app.route("/world/<world_id>/update", methods=["POST", "OPTIONS"])
 @cross_origin(origins=["*"])
