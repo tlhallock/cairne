@@ -7,7 +7,7 @@ from pydantic.json_schema import models_json_schema
 
 
 class Response(BaseModel):
-	pass
+    pass
 
 
 # ENTITY_ID = str
@@ -24,13 +24,14 @@ class Response(BaseModel):
 
 
 def generate_json_schema():
-	import cairne.schema.edits
-	import cairne.schema.generate
-	import cairne.schema.generated
-	import cairne.schema.loaded_models
-	import cairne.schema.worlds
+    import cairne.schema.edits
+    import cairne.schema.generate
+    import cairne.schema.generated
+    import cairne.schema.loaded_models
+    import cairne.schema.worlds
 
-	models = [        cairne.schema.edits.AppendElementRequest,
+    models = [
+        cairne.schema.edits.AppendElementRequest,
         cairne.schema.edits.AppendElementResponse,
         cairne.schema.edits.RemoveValueRequest,
         cairne.schema.edits.RemoveValueResponse,
@@ -75,47 +76,46 @@ def generate_json_schema():
         cairne.schema.worlds.EntityTypeSummary,
         cairne.schema.worlds.ListEntityTypesResponse,
         cairne.schema.worlds.WorldSummary
-        
         # cairne.schema.generated.GeneratedValueEditor,
-	]
-	_, top_level_schema = models_json_schema(
-		[(model, "validation") for model in models], title="Cairne Schema"
-	)
-	with open("ashkavor/src/openrpg/schema/schema.json", "w") as fp:
-		json.dump(top_level_schema, fp, indent=2)
+    ]
+    _, top_level_schema = models_json_schema(
+        [(model, "validation") for model in models], title="Cairne Schema"
+    )
+    with open("ashkavor/src/openrpg/schema/schema.json", "w") as fp:
+        json.dump(top_level_schema, fp, indent=2)
 
 
 def print_classes():
-	models = []
-	imports = set()
-	for root, _, files in os.walk("cairne/cairne/schema"):
-		for file in files:
-			if not file.endswith(".py"):
-				continue
-			if file == "base.py":
-				continue
-			with open(os.path.join(root, file)) as fp:
-				for line in fp:
-					if "#" in line:
-						continue
-					if "class " not in line:
-						continue
-					class_name = line.split("class ")[1].split("(")[0]
-					class_path = (
-						root[len("cairne/") :].replace("/", ".")
-						+ "."
-						+ file[:-3]
-						+ "."
-						+ class_name
-					)
-					models.append("        " + class_path + ",")  # "\t\t\t" +
+    models = []
+    imports = set()
+    for root, _, files in os.walk("cairne/cairne/schema"):
+        for file in files:
+            if not file.endswith(".py"):
+                continue
+            if file == "base.py":
+                continue
+            with open(os.path.join(root, file)) as fp:
+                for line in fp:
+                    if "#" in line:
+                        continue
+                    if "class " not in line:
+                        continue
+                    class_name = line.split("class ")[1].split("(")[0]
+                    class_path = (
+                        root[len("cairne/") :].replace("/", ".")
+                        + "."
+                        + file[:-3]
+                        + "."
+                        + class_name
+                    )
+                    models.append("        " + class_path + ",")  # "\t\t\t" +
 
-					imports.add("    import " + class_path.rsplit(".", 1)[0])
-	print("\n".join(sorted(models)))
-	print("\n\n\n\n\n")
-	print("\n".join(sorted(list(imports))))
+                    imports.add("    import " + class_path.rsplit(".", 1)[0])
+    print("\n".join(sorted(models)))
+    print("\n\n\n\n\n")
+    print("\n".join(sorted(list(imports))))
 
 
 if __name__ == "__main__":
-	print_classes()
-	generate_json_schema()
+    print_classes()
+    generate_json_schema()

@@ -8,7 +8,7 @@ from cairne.schema.base import Response
 
 
 class CreateWorldRequest(BaseModel):
-	name: str = Field(..., description="Name of the world")
+    name: str = Field(..., description="Name of the world")
 
 
 class EntityType(BaseModel):
@@ -17,7 +17,7 @@ class EntityType(BaseModel):
 
 
 class ListEntityTypesResponse(Response):
-	entity_types: List[EntityType] = Field(..., description="List of entity types")
+    entity_types: List[EntityType] = Field(..., description="List of entity types")
 
 
 class EntityTypeSummary(BaseModel):
@@ -31,4 +31,3 @@ class WorldSummary(BaseModel):
     name: str = Field(..., description="Name of the world")
     entity_type_summaries: List[EntityTypeSummary] = Field()
     generation_goals: List[str] = Field()
-    

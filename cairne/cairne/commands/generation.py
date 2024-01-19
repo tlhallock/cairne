@@ -18,68 +18,67 @@ from cairne.model.world_spec import WORLD
 
 @dataclass
 class ListGenerations(Command):
-	def execute(self) -> generate_schema.ListGenerationsResponse:
-		generations = []
-		for generation in self.datastore.generations.values():
-			generations.append(export.export_generation_list_item(generation))
-		return generate_schema.ListGenerationsResponse(generations=generations)
+    def execute(self) -> generate_schema.ListGenerationsResponse:
+        generations = []
+        for generation in self.datastore.generations.values():
+            generations.append(export.export_generation_list_item(generation))
+        return generate_schema.ListGenerationsResponse(generations=generations)
 
 
 @dataclass
 class GetGeneration(Command):
-	generation_id: uuid.UUID
-	
-	def execute(self) -> generate_schema.GetGenerationResponse:
-		generation = self.datastore.generations.get(self.generation_id, None)
-		if generation is None:
-			raise ValueError(f"Generation not found: {self.generation_id}")
+    generation_id: uuid.UUID
 
-		exported = export.export_generation(generation)
-		return generate_schema.GetGenerationResponse(generation=exported)
+    def execute(self) -> generate_schema.GetGenerationResponse:
+        generation = self.datastore.generations.get(self.generation_id, None)
+        if generation is None:
+            raise ValueError(f"Generation not found: {self.generation_id}")
+
+        exported = export.export_generation(generation)
+        return generate_schema.GetGenerationResponse(generation=exported)
+
 
 @dataclass
 class CancelGeneration(Command):
-	request: generate_schema.CancelGenerationRequest
+    request: generate_schema.CancelGenerationRequest
 
-	def execute(self) -> generate_schema.CancelGenerationResponse:
-		raise NotImplementedError()
-		# world = self.datastore.worlds.get(self.request.world_id, None)
-		# if world is None:
-		#     raise ValueError(f"World not found: {self.request.world_id}")
+    def execute(self) -> generate_schema.CancelGenerationResponse:
+        raise NotImplementedError()
+        # world = self.datastore.worlds.get(self.request.world_id, None)
+        # if world is None:
+        #     raise ValueError(f"World not found: {self.request.world_id}")
 
-		# character = world.characters.get(self.request.character_id, None)
-		# if character is None:
-		#     raise ValueError(f"Character not found: {self.request.character_id}")
+        # character = world.characters.get(self.request.character_id, None)
+        # if character is None:
+        #     raise ValueError(f"Character not found: {self.request.character_id}")
 
-		# exported = export.export_character(character)
-		# return generate_schema.GetCharacterResponse(character=exported)
+        # exported = export.export_character(character)
+        # return generate_schema.GetCharacterResponse(character=exported)
 
 
 @dataclass
 class ApplyGeneration(Command):
-	request: generate_schema.ApplyGenerationRequest
+    request: generate_schema.ApplyGenerationRequest
 
-	def execute(self) -> generate_schema.ApplyGenerationResponse:
-		raise NotImplementedError()
-		# world = self.datastore.worlds.get(self.request.world_id, None)
-		# if world is None:
-		#     raise ValueError(f"World not found: {self.request.world_id}")
+    def execute(self) -> generate_schema.ApplyGenerationResponse:
+        raise NotImplementedError()
+        # world = self.datastore.worlds.get(self.request.world_id, None)
+        # if world is None:
+        #     raise ValueError(f"World not found: {self.request.world_id}")
 
-		# character = world.characters.get(self.request.character_id, None)
-		# if character is None:
-		#     raise ValueError(f"Character not found: {self.request.character_id}")
+        # character = world.characters.get(self.request.character_id, None)
+        # if character is None:
+        #     raise ValueError(f"Character not found: {self.request.character_id}")
 
-		# exported = export.export_character(character)
-		# return generate_schema.ApplyGenerationResponse(character=exported)
+        # exported = export.export_character(character)
+        # return generate_schema.ApplyGenerationResponse(character=exported)
 
 
 @dataclass
 class GetEntitySchema(Command):
-	entity_type: spec.EntityType
+    entity_type: spec.EntityType
 
-	def execute(self) -> generated_schema.GetEntitySchemaResponse:
-		entity_specification = self.entity_type.get_specification()
-		schema = export.export_entity_specification(entity_specification)
-		return generated_schema.GetEntitySchemaResponse(
-			schema=schema
-		)
+    def execute(self) -> generated_schema.GetEntitySchemaResponse:
+        entity_specification = self.entity_type.get_specification()
+        schema = export.export_entity_specification(entity_specification)
+        return generated_schema.GetEntitySchemaResponse(schema=schema)

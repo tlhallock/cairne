@@ -6,11 +6,11 @@ from cairne.serve.data_store import Datastore
 
 @dataclass
 class Command:
-	datastore: Datastore
-	user: str
+    datastore: Datastore
+    user: str
 
-	def execute(self) -> Response:
-		"""
-		Execute the command.
-		"""
-		raise NotImplementedError()
+    def execute(self) -> Response:
+        """
+        Execute the command.
+        """
+        raise NotImplementedError()
