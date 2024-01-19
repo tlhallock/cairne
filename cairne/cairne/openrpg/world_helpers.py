@@ -1,20 +1,20 @@
 import datetime
 import json
 import string
+import typing
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
-import typing
 
 from pydantic import BaseModel, Field
 from structlog import get_logger
 
 import cairne.model.calls as calls
+import cairne.model.generated as generated_model
 import cairne.model.specification as spec
 import cairne.parsing.parse_incomplete_json as parse_incomplete
-import cairne.model.generated as generated_model
 
 
 def get_factions(world: generated_model.GeneratedEntity) -> List[str]:

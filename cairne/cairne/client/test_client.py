@@ -6,9 +6,9 @@ import requests
 from structlog import get_logger
 
 import cairne.model.specification as spec
+import cairne.schema.generate as generate_schema
 import cairne.schema.generated as generated_schema
 import cairne.schema.worlds as worlds_schema
-import cairne.schema.generate as generate_schema
 
 logger = get_logger(__name__)
 

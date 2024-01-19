@@ -7,6 +7,7 @@ from flask_cors import CORS, cross_origin
 from flask_pydantic import validate
 from structlog import get_logger
 
+import cairne.commands.edits as edits_commands
 import cairne.commands.generate.base as base_generate_commands
 import cairne.commands.generate.openai.generate as openai_generate
 import cairne.commands.generated as generated_commands
@@ -14,12 +15,11 @@ import cairne.commands.generation as generate_commands
 import cairne.commands.worlds as world_commands
 import cairne.model.generation as generate_model
 import cairne.model.specification as spec
+import cairne.schema.edits as edits_schema
 import cairne.schema.generate as generate_schema
 import cairne.schema.generated as generated_schema
 import cairne.schema.worlds as worlds_schema
 from cairne.serve.data_store import Datastore
-import cairne.commands.edits as edits_commands
-import cairne.schema.edits as edits_schema
 
 # Story idea: the last human as ais take over
 # add editor settings (like include field in generation)

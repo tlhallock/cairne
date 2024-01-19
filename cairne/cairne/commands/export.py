@@ -4,10 +4,13 @@ import uuid
 from dataclasses import dataclass, field
 from typing import List, Optional, Union
 
+from structlog import get_logger
+
 import cairne.model.character as characters_model
 import cairne.model.generated as generated_model
 import cairne.model.generation as generate_model
 import cairne.model.specification as spec
+import cairne.model.validation as validation
 import cairne.model.world as worlds_model
 import cairne.schema.characters as characters_schema
 import cairne.schema.generate as generate_schema
@@ -15,9 +18,6 @@ import cairne.schema.generated as generated_schema
 import cairne.schema.worlds as worlds_schema
 from cairne.commands.base import Command
 from cairne.model.world_spec import WORLD
-import cairne.model.validation as validation
-from structlog import get_logger
-
 
 logger = get_logger(__name__)
 

@@ -5,7 +5,8 @@ import threading
 import typing
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Union
+from typing import (Any, Callable, Dict, List, Literal, Optional, Tuple, Type,
+                    Union)
 
 import openai
 from pydantic import BaseModel, Field

@@ -1,5 +1,5 @@
-import cairne.model.specification as spec
 import cairne.model.character as character_model
+import cairne.model.specification as spec
 
 # spawn location
 

@@ -11,13 +11,11 @@ from pydantic import BaseModel, Field
 from structlog import get_logger
 
 import cairne.model.calls as calls
-
 # rename this to generated_model
 import cairne.model.generated as gen
 import cairne.model.parsing as parsing
 import cairne.model.specification as spec
 import cairne.parsing.parse_incomplete_json as parse_incomplete
-
 
 logger = get_logger(__name__)
 

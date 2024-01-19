@@ -11,9 +11,9 @@ from pydantic import BaseModel, Field
 from structlog import get_logger
 
 import cairne.model.calls as calls
+import cairne.model.generated as generated_model
 import cairne.model.specification as spec
 import cairne.parsing.parse_incomplete_json as parse_incomplete
-import cairne.model.generated as generated_model
 
 # TODO: rename this file to generate?
 
