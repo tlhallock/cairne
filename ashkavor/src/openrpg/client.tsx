@@ -78,11 +78,17 @@ export const listEntities = (
 export const getEntity = (
     worldId: openrpg.WorldId,
     entityId: openrpg.EntityId,
+    templateId: openrpg.TemplateId | null,
+    generationId: openrpg.GenerationId | null,
     onEntity: (response: openrpg.GetEntityResponse) => void,
     onError: (error: Error) => void = (error: Error) => console.log(error)
 ) => {
+    const query: openrpg.GetEntityQuery = {
+        template_id: templateId,
+        generation_id: generationId,
+    };
     axios
-        .get('/world/' + worldId + '/entity/' + entityId)
+        .get('/world/' + worldId + '/entity/' + entityId, { params: query })
         .then((r) => onEntity(r.data))
         .catch(onError);
 };
@@ -171,5 +177,94 @@ export const replaceValue = (
             headers: { 'Content-Type': 'application/json' },
         })
         .then((r) => onComplete(r.data))
+        .catch(onError);
+};
+
+export const createTemplate = (
+    name: string,
+    worldId: openrpg.WorldId,
+    entityId: openrpg.EntityId2,
+    generatorModel: openrpg.GeneratorModel | null,
+    generationType: openrpg.GenerationType | null,
+    onTemplate: (response: openrpg.CreateTemplateResponse) => void,
+    onError: (error: Error) => void = (error: Error) => console.log(error)
+) => {
+    const request: openrpg.CreateTemplateRequest = {
+        name: name,
+        world_id: worldId,
+        entity_id: entityId,
+        generator_model: generatorModel,
+        generation_type: generationType,
+    };
+    axios
+        .post('/templates', request, { headers: { 'Content-Type': 'application/json' } })
+        .then((r) => onTemplate(r.data))
+        .catch(onError);
+};
+
+export const deleteTemplate = (
+    templateId: openrpg.TemplateId,
+    onDelete: (response: openrpg.DeleteTemplateResponse) => void,
+    onError: (error: Error) => void = (error: Error) => console.log(error)
+) => {
+    axios
+        .delete('/template/' + templateId)
+        .then((r) => onDelete(r.data))
+        .catch(onError);
+};
+
+export const listTemplates = (
+    entityId: openrpg.EntityId | null,
+    onTemplates: (response: openrpg.ListTemplatesResponse) => void,
+    onError: (error: Error) => void = (error: Error) => console.log(error)
+) => {
+    axios
+        .get('/templates')
+        .then((r) => onTemplates(r.data))
+        .catch(onError);
+};
+
+export const listGenerations = (
+    entityId: openrpg.EntityId | null,
+    onGenerations: (response: openrpg.ListGenerationsResponse) => void,
+    onError: (error: Error) => void = (error: Error) => console.log(error)
+) => {
+    axios
+        .get('/generations')
+        .then((r) => onGenerations(r.data))
+        .catch(onError);
+};
+
+export const getTemplate = (
+    templateId: openrpg.TemplateId,
+    onTemplate: (response: openrpg.GetTemplateResponse) => void,
+    onError: (error: Error) => void = (error: Error) => console.log(error)
+) => {
+    axios
+        .get('/template/' + templateId)
+        .then((r) => onTemplate(r.data))
+        .catch(onError);
+};
+
+export const updateTemplate = (
+    updates: openrpg.UpdateTemplateRequest,
+    onUpdate: (response: openrpg.UpdateTemplateResponse) => void,
+    onError: (error: Error) => void = (error: Error) => console.log(error)
+) => {
+    axios
+        .post('/template/' + updates.template_id, updates, {
+            headers: { 'Content-Type': 'application/json' },
+        })
+        .then((r) => onUpdate(r.data))
+        .catch(onError);
+};
+
+export const listGeneratorTypes = (
+    onGeneratorTypes: (response: openrpg.ListGenerationModels) => void,
+    onError: (error: Error) => void = (error: Error) => console.log(error)
+) => {
+    axios
+        .get('/templates/generators')
+        .then((r) => onGeneratorTypes(r.data))
         .catch(onError);
 };

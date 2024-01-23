@@ -34,7 +34,7 @@ WORLD = spec.EntitySpecification(
         ),
         "game_speed": spec.ValueSpecification(
             parser=spec.ParserSpecification(parser_name=spec.ParserName.FLOAT),
-            editor=spec.EditorSpecification(editor_name=spec.EditorName.NUMBER_INPUT),
+            editor=spec.EditorSpecification(editor_name=spec.EditorName.FLOAT_INPUT),
             validators=[
                 spec.ValidatorSpecification(validator_name=spec.ValidatorName.REQUIRED)
             ],
@@ -53,9 +53,6 @@ WORLD = spec.EntitySpecification(
         spec.EntityType.REGION.get_field_name(): spec.EntityDictionarySpecification(
             entity_specification=spec.EntitySpecification(
                 entity_type=spec.EntityType.REGION,
-                generation=spec.GenerationSpecification(
-                    instructions=[],
-                ),
                 children={
                     "name": spec.ValueSpecification(
                         parser=spec.ParserSpecification(
@@ -63,10 +60,6 @@ WORLD = spec.EntitySpecification(
                         ),
                         editor=spec.EditorSpecification(
                             editor_name=spec.EditorName.SHORT_STRING
-                        ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
-                            # example_json_values=["Daly City", "Fort Funston"],
                         ),
                         validators=[
                             spec.ValidatorSpecification(
@@ -82,7 +75,6 @@ WORLD = spec.EntitySpecification(
                             editor_name=spec.EditorName.LONG_STRING
                         ),
                         generation=spec.GenerationSpecification(
-                            instructions=[],
                             # example_json_values=[trim("""
                             # 	A small town on the coast of California, inhabited since 2700 BC.
                             #  	The Ohlone people lived here for thousands of years before the Spanish arrived in 1769.
@@ -106,7 +98,6 @@ WORLD = spec.EntitySpecification(
                             editor_name=spec.EditorName.LONG_STRING
                         ),
                         generation=spec.GenerationSpecification(
-                            instructions=[],
                             # example_json_values=[
                             # 	'"beach, ocean, cliffs, sand, waves, surfers, sun, fog, seagulls, pelicans, seals, sea lions, fog"',
                             # ],
@@ -132,7 +123,6 @@ WORLD = spec.EntitySpecification(
                             editor_name=spec.EditorName.SHORT_STRING
                         ),
                         generation=spec.GenerationSpecification(
-                            instructions=[],
                             # example_json_values=['"stick"', '"feather"', '"rock"', '"potion"'],
                         ),
                         validators=[
@@ -149,7 +139,6 @@ WORLD = spec.EntitySpecification(
                             editor_name=spec.EditorName.LONG_STRING
                         ),
                         generation=spec.GenerationSpecification(
-                            instructions=[],
                             # example_json_values=['"used for building a fire or arrow"'],
                         ),
                         validators=[
@@ -164,9 +153,6 @@ WORLD = spec.EntitySpecification(
                         ),
                         editor=spec.EditorSpecification(
                             editor_name=spec.EditorName.LONG_STRING
-                        ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
                         ),
                         validators=[
                             spec.ValidatorSpecification(
@@ -188,9 +174,6 @@ WORLD = spec.EntitySpecification(
                         editor=spec.EditorSpecification(
                             editor_name=spec.EditorName.SHORT_STRING
                         ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
-                        ),
                         validators=[
                             spec.ValidatorSpecification(
                                 validator_name=spec.ValidatorName.REQUIRED
@@ -203,9 +186,6 @@ WORLD = spec.EntitySpecification(
                         ),
                         editor=spec.EditorSpecification(
                             editor_name=spec.EditorName.LONG_STRING
-                        ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
                         ),
                         validators=[
                             spec.ValidatorSpecification(
@@ -220,9 +200,6 @@ WORLD = spec.EntitySpecification(
                         editor=spec.EditorSpecification(
                             editor_name=spec.EditorName.LONG_STRING
                         ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
-                        ),
                         validators=[
                             spec.ValidatorSpecification(
                                 validator_name=spec.ValidatorName.REQUIRED
@@ -234,10 +211,7 @@ WORLD = spec.EntitySpecification(
                             parser_name=spec.ParserName.FLOAT
                         ),
                         editor=spec.EditorSpecification(
-                            editor_name=spec.EditorName.NUMBER_INPUT
-                        ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
+                            editor_name=spec.EditorName.FLOAT_INPUT
                         ),
                         validators=[
                             spec.ValidatorSpecification(
@@ -259,9 +233,6 @@ WORLD = spec.EntitySpecification(
                         editor=spec.EditorSpecification(
                             editor_name=spec.EditorName.SHORT_STRING
                         ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
-                        ),
                         validators=[
                             spec.ValidatorSpecification(
                                 validator_name=spec.ValidatorName.REQUIRED
@@ -274,9 +245,6 @@ WORLD = spec.EntitySpecification(
                         ),
                         editor=spec.EditorSpecification(
                             editor_name=spec.EditorName.LONG_STRING
-                        ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
                         ),
                         validators=[
                             spec.ValidatorSpecification(
@@ -291,9 +259,6 @@ WORLD = spec.EntitySpecification(
                         editor=spec.EditorSpecification(
                             editor_name=spec.EditorName.LONG_STRING
                         ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
-                        ),
                         validators=[
                             spec.ValidatorSpecification(
                                 validator_name=spec.ValidatorName.REQUIRED
@@ -307,14 +272,14 @@ WORLD = spec.EntitySpecification(
             entity_specification=spec.EntitySpecification(
                 generation=spec.GenerationSpecification(
                     instructions=[
-                        "Create characters for a game with setting: '{theme}'.",
-                        "Character names should be unique and memorable.",
-                        "Character names should not be well-known historical figures.",
-                        "Character names should be appropriate for the setting.",
-                        "Possible factions: [{possible_factions}].",
-                        "Possible genders: [{possible_genders}].",
-                        "Possible archetypes: [{possible_archetypes}].",
-                        "The existing characters are: {existing_characters}.",
+                        spec.PredefinedInstruction(name="setting", template="Create characters for a game with setting: '{theme}'."),
+                        spec.PredefinedInstruction(name="unique", template="Character names should be unique and memorable."),
+                        spec.PredefinedInstruction(name="no-well-known", template="Character names should not be well-known historical figures."),
+                        spec.PredefinedInstruction(name="match-setting", template="Character names should be appropriate for the setting."),
+                        spec.PredefinedInstruction(name="faction-options", template="Possible factions: [{possible_factions}]."),
+                        spec.PredefinedInstruction(name="gender-options", template="Possible genders: [{possible_genders}]."),
+                        spec.PredefinedInstruction(name="archetype-options", template="Possible archetypes: [{possible_archetypes}]."),
+                        spec.PredefinedInstruction(name="existing-characters", template="The existing characters are: {existing_characters}."),
                     ],
                 ),
                 entity_type=spec.EntityType.CHARACTER,
@@ -325,9 +290,6 @@ WORLD = spec.EntitySpecification(
                         ),
                         editor=spec.EditorSpecification(
                             editor_name=spec.EditorName.SHORT_STRING
-                        ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
                         ),
                         validators=[
                             spec.ValidatorSpecification(
@@ -357,10 +319,7 @@ WORLD = spec.EntitySpecification(
                             parser_name=spec.ParserName.FLOAT
                         ),
                         editor=spec.EditorSpecification(
-                            editor_name=spec.EditorName.NUMBER_INPUT
-                        ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
+                            editor_name=spec.EditorName.FLOAT_INPUT
                         ),
                         validators=[
                             spec.ValidatorSpecification(
@@ -426,9 +385,6 @@ WORLD = spec.EntitySpecification(
                         editor=spec.EditorSpecification(
                             editor_name=spec.EditorName.LONG_STRING
                         ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
-                        ),
                         validators=[
                             spec.ValidatorSpecification(
                                 validator_name=spec.ValidatorName.REQUIRED
@@ -441,9 +397,6 @@ WORLD = spec.EntitySpecification(
                         ),
                         editor=spec.EditorSpecification(
                             editor_name=spec.EditorName.LONG_STRING
-                        ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
                         ),
                         validators=[
                             spec.ValidatorSpecification(
@@ -458,9 +411,6 @@ WORLD = spec.EntitySpecification(
                         editor=spec.EditorSpecification(
                             editor_name=spec.EditorName.LONG_STRING
                         ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
-                        ),
                     ),
                     "origin": spec.ValueSpecification(
                         parser=spec.ParserSpecification(
@@ -468,9 +418,6 @@ WORLD = spec.EntitySpecification(
                         ),
                         editor=spec.EditorSpecification(
                             editor_name=spec.EditorName.LONG_STRING
-                        ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
                         ),
                     ),
                     # should update with the appearance...
@@ -480,9 +427,6 @@ WORLD = spec.EntitySpecification(
                         ),
                         editor=spec.EditorSpecification(
                             editor_name=spec.EditorName.LONG_STRING
-                        ),
-                        generation=spec.GenerationSpecification(
-                            instructions=[],
                         ),
                         validators=[
                             spec.ValidatorSpecification(

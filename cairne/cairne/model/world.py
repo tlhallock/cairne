@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 
 import cairne.model.calls as calls
 import cairne.model.character as chars
-import cairne.model.generated as gen
+import cairne.model.generated as generated_model
 
 # class World(BaseModel):
 #     world_id: uuid.UUID = Field(default_factory=uuid.uuid4)

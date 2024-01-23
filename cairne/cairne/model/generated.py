@@ -1,19 +1,16 @@
-import abc
+
 import datetime
 import json
 import uuid
-from contextlib import contextmanager
-from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import Set
 
 from pydantic import BaseModel, Field
 from structlog import get_logger
 from typing_extensions import Annotated
 
-import cairne.model.calls as calls
 import cairne.model.specification as spec
-import cairne.parsing.parse_incomplete_json as parse_incomplete
 
 logger = get_logger(__name__)
 
@@ -72,7 +69,7 @@ class GenerationSource(BaseModel):
     source_type: GenerationSourceType = Field(
         default=GenerationSourceType.UNINITIALIZED
     )
-    model_call: Optional[calls.ModelCall] = Field(default=None)
+    # model_call: Optional[calls.ModelCall] = Field(default=None)
     # user selection of language model output
     pass
 
@@ -106,6 +103,7 @@ class GeneratedBase(BaseModel):
         spec.BaseGenerationResult | str | int | float | bool | None
     ] = Field(default=None)
     deletion: Optional[Deletion] = Field(default=None)
+    generate: Optional[bool] = Field(default=None, exclude=True)
 
     validation_errors: List[spec.ValidationError] = Field(
         default_factory=list, exclude=True
@@ -142,7 +140,14 @@ class GeneratedBase(BaseModel):
         raise NotImplementedError
 
 
+class GeneratedValueResult(BaseModel):
+    source_generation_id: uuid.UUID = Field()
+    value_js: str = Field()
+
+
 class GeneratedValue(GeneratedBase):
+    generated_result: Optional[GeneratedValueResult] = Field(default=None, exclude=True)
+    
     # choices presented to the user?
     def search_for_entity(
         self, entity_id: uuid.UUID, path: spec.GeneratablePath
@@ -191,8 +196,9 @@ class GeneratedBoolean(GeneratedValue):
 
 class GeneratedObject(GeneratedBase):
     generated_type: Literal["object"] = Field(default_factory=lambda: "object")
-    children: Dict[str, "Generated"] = Field(default=dict)
+    children: Dict[str, GeneratedBase] = Field(default=dict)
     parsed: Optional[dict] = Field(default=dict)
+    # TODO: This should be a field on the value itself...
 
     def is_generated(self) -> bool:
         return self.parsed is not None and len(self.parsed) > 0
@@ -239,10 +245,15 @@ class GeneratedObject(GeneratedBase):
         self.children[key.key] = value
 
 
+class GenerateListSettings(BaseModel):
+    number_to_generate: Optional[int] = Field(default=None)
+
+
 class GeneratedList(GeneratedBase):
     generated_type: Literal["list"] = Field(default_factory=lambda: "list")
-    elements: List["Generated"] = Field(default=list)
+    elements: List[GeneratedBase] = Field(default=list)
     parsed: Optional[list] = Field(default=dict)
+    generation_settings: Optional[GenerateListSettings] = Field(default=None, exclude=True)
 
     def is_generated(self) -> bool:
         return self.parsed is not None and len(self.parsed) > 0
@@ -412,6 +423,7 @@ Generated = Annotated[
     ],
     Field(discriminator="generated_type"),
 ]
+
 
 # class Generatable(BaseModel):
 # choices

@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
 
 from pydantic import BaseModel, Field
 from structlog import get_logger
+import string
 
 import cairne.model.calls as calls
 import cairne.parsing.parse_incomplete_json as parse_incomplete
@@ -224,6 +225,9 @@ class ValidatorName(str, Enum):
 
 
 class ValidatorSpecification(BaseModel):
+    # TODO:
+    # name: str = Field()
+    # label: str = Field()
     validator_name: ValidatorName = Field()
 
 
@@ -238,21 +242,32 @@ class OneOfGeneratedValidator(ValidatorSpecification):
 
 
 class EditorName(str, Enum):
-    LONG_STRING = "LONG_STRING"
+    LONG_STRING = "long_string"
     SHORT_STRING = "short_string"
-    NUMBER_INPUT = "number_input"
+    FLOAT_INPUT = "float_input"
+    INTEGER_INPUT = "integer_input"
     BOOLEAN_INPUT = "boolean_input"
     ENUMERATED = "enumerated"
 
 
 class EditorSpecification(BaseModel):
-    # Maybe this should be one of generated_schema.GeneratedValueEditor...
-    editor_name: str = Field()
+    editor_name: EditorName = Field()
     # TODO: Create instructions for the add to list method, somehow
 
 
+class PredefinedInstruction(BaseModel):
+    name: str = Field()
+    template: str = Field()
+    label: Optional[str] = Field(default=None)
+    
+    def get_required_variables(self) -> List[str]:
+        return [
+            arg[1] for arg in string.Formatter().parse(self.template) if arg[1] is not None
+        ]
+
+
 class GenerationSpecification(BaseModel):
-    instructions: List[str] = Field(default_factory=list)
+    instructions: List[PredefinedInstruction] = Field(default_factory=list)
 
     expected_num_tokens: Optional[int] = Field(default=None)
     num_examples: Optional[int] = Field(default=None)
@@ -280,15 +295,16 @@ class GeneratableSpecification(BaseModel):
     )
     # Options for how to add to a list
 
+    # TODO: this should not have all fields, we need to pass in a field_to_include
     def create_example(self) -> Any:
         raise NotImplementedError()
 
     def get(self, path: GeneratablePath, path_index: int) -> "GeneratableSpecification":
         raise NotImplementedError()
 
-    def create_schema(self) -> str:
+    def create_schema(self, fields_to_include: List[GeneratablePath]) -> Dict[str, str]:
         # TODO
-        return ""
+        return {}
 
 
 class ValueSpecification(GeneratableSpecification):

@@ -12,9 +12,6 @@ import { GenerateStatus } from '../generate-status/generate-status';
 
 export interface ValueEditorProps {
     field: openrpg.GeneratedField;
-    onEdit: () => void;
-    generationState: generation.GenerationState;
-    setGenerationState: (state: generation.GenerationState) => void;
     depth: number;
     setJsValue: (value: string) => void;
     jsValue: string;
@@ -36,9 +33,9 @@ export const ChoicesEditor = ({ setJsValue, jsValue, field }: ValueEditorProps) 
                 }
             }}
         >
-            {field.choices?.map((choice: string) => (
-                <option key={choice} value={choice}>
-                    {choice}
+            {field.choices?.map(({ label, value }: openrpg.GeneratedFieldChoice) => (
+                <option key={value} value={value}>
+                    {label}
                 </option>
             ))}
             <option value="none">None</option>
@@ -65,38 +62,34 @@ export const StringFieldEditor = ({ setJsValue, jsValue }: ValueEditorProps) => 
     );
 };
 
-export const TextFieldEditor = ({
-    field,
-    onEdit,
-    generationState,
-    setGenerationState,
-}: ValueEditorProps) => {
+export const TextFieldEditor = ({ field, onEdit }: ValueEditorProps) => {
     return <input type="text" />;
 };
 
-export const BooleanValueEditor = ({
-    field,
-    onEdit,
-    generationState,
-    setGenerationState,
-}: ValueEditorProps) => {
+export const BooleanValueEditor = ({ field, onEdit }: ValueEditorProps) => {
     return <input type="checkbox" />;
 };
 
-export const IntegerValueEditor = ({
-    field,
-    onEdit,
-    generationState,
-    setGenerationState,
-}: ValueEditorProps) => {
+export const IntegerValueEditor = ({ field, onEdit }: ValueEditorProps) => {
     return <input type="number" />;
 };
 
-export const FloatValueEditor = ({
-    field,
-    onEdit,
-    generationState,
-    setGenerationState,
-}: ValueEditorProps) => {
-    return <input type="number" />;
+export const FloatValueEditor = ({ setJsValue, jsValue, field }: ValueEditorProps) => {
+    let value = null;
+    try {
+        value = JSON.parse(jsValue);
+    } catch (e) {
+        value = 0.0;
+    }
+    return (
+        <input
+            type="number"
+            value={value}
+            onChange={(event) => {
+                if (setJsValue) {
+                    setJsValue(JSON.stringify(event.target.value));
+                }
+            }}
+        />
+    );
 };

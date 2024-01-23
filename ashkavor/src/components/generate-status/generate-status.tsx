@@ -33,7 +33,7 @@ const getGenerationStatusLabel = (generationStatus: openrpg.GenerationStatus | u
 
 export const GenerateStatus = ({ generationId }: GenerateStatusProps) => {
     const [refreshCounter, setRefreshCounter] = React.useState<number>(0);
-    const [generation, setGeneration] = React.useState<openrpg.Generation>();
+    const [generation, setGeneration] = React.useState<openrpg.GenerationView>();
 
     setTimeout(() => {
         setRefreshCounter(refreshCounter + 1);

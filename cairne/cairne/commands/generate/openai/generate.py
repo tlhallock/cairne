@@ -23,7 +23,8 @@ import cairne.schema.characters as characters_schema
 import cairne.schema.generate as generate_schema
 import cairne.schema.worlds as worlds_schema
 from cairne.commands.base import Command
-from cairne.commands.generate.base import BaseGenerate, parse_results
+import cairne.commands.generate.base as base_generate_commands
+from cairne.serve.data_store import Datastore
 
 
 logger = get_logger()
@@ -52,9 +53,9 @@ class OpenAIService:
                 for message in generation.prompt_messages
             ],
             response_format={"type": "json_object"},
-            temperature=generation.parameters.temperature,
-            seed=generation.parameters.seed,
-            max_tokens=generation.parameters.max_tokens,
+            temperature=generation.template_snapshot.parameters.temperature,
+            seed=generation.template_snapshot.parameters.seed,
+            max_tokens=generation.template_snapshot.parameters.max_tokens,
         )
         logger.info("Calling openai", kwargs=kwargs, generation=generation)
 
@@ -120,48 +121,39 @@ def get_openai_service() -> OpenAIService:
     return service
 
 
-def run_openai_generation(generation: generate_model.Generation):
-    try:
-        logger.info("Running OpenAI generation", generation_id=generation.generation_id)
-        generation.status = generate_model.GenerationStatus.IN_PROGRESS
+def run_openai_generation(data_store: Datastore, generation: generate_model.Generation):
+    with base_generate_commands.generate_thread_entry(data_store, generation):
+        try:
+            logger.info("Running OpenAI generation", generation_id=generation.generation_id)
+            generation.status = generate_model.GenerationStatus.IN_PROGRESS
 
-        service = get_openai_service()
+            service = get_openai_service()
 
-        result = service.generate_json(generation)
-        parse_results(generation, result)
+            result = service.generate_json(generation)
+            base_generate_commands.parse_results(generation, result)
 
-        generation.end_time = datetime.datetime.utcnow()
-        generation.status = generate_model.GenerationStatus.COMPLETE
-        logger.info("Completed OpenAI generation", generation_id=generation.generation_id)
-    except Exception as e:
-        logger.exception(
-            "Error running OpenAI generation",
-            generation_id=generation.generation_id,
-            excepttion=e,
-        )
-        generation.end_time = datetime.datetime.utcnow()
-        generation.status = generate_model.GenerationStatus.ERROR
-        raise
+            # TODO: move this into the base class
+            generation.end_time = datetime.datetime.utcnow()
+            generation.status = generate_model.GenerationStatus.COMPLETE
+            logger.info("Completed OpenAI generation", generation_id=generation.generation_id)
+            data_store.save()
+        except Exception as e:
+            logger.exception(
+                "Error running OpenAI generation",
+                generation_id=generation.generation_id,
+                exception=e,
+            )
+            generation.end_time = datetime.datetime.utcnow()
+            generation.status = generate_model.GenerationStatus.ERROR
+            raise
         
 
 
-class OpenAIGenerate(BaseGenerate):
-    def spawn_generation(self) -> threading.Thread:
+class OpenAIGenerate(base_generate_commands.BaseGenerate):
+    def spawn_generation(self) -> None:
         # Should rate limit this somehow...
         # We need to remember this thread so we can cancel it later
-        return threading.Thread(target=run_openai_generation, args=(self.generation,)).start()
-
-
-# class InstructionGenerationContext:
-#     generation_state: state.GenerationState
-#     incomplete_entity: Optional[spec.IncompleteGeneration]
-#     # include validation errors?
-
-
-# class GenerationSpecification(BaseModel):
-#     instructions: List[Callable[[InstructionGenerationContext], List[str]]]
-#     initial_example: Dict[str, Any]
-#     complete_example: Dict[str, Any]
+        threading.Thread(target=run_openai_generation, args=(self.datastore, self.generation,)).start()
 
 
 class Settings:

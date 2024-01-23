@@ -12,6 +12,7 @@ import cairne.model.specification as spec
 import cairne.schema.generated as generated_schema
 from cairne.commands.base import Command
 from cairne.model.world_spec import WORLD
+import cairne.model.validation as validation
 
 # The world should probably have been seperate
 
@@ -86,18 +87,40 @@ class ListEntities(Command):
 
 @dataclass
 class GetEntity(Command):
-    world_id: uuid.UUID
-    entity_id: uuid.UUID
+    request: generated_schema.GetEntityRequest
 
     def execute(self) -> generated_schema.GetEntityResponse:
-        world = self.datastore.worlds.get(self.world_id, None)
+        world = self.datastore.worlds.get(self.request.world_id, None)
         if world is None:
-            raise ValueError(f"World not found: {self.world_id}")
+            raise ValueError(f"World not found: {self.request.world_id}")
+        
+        # Copying so that excluded fields written for the export don't have a concurrency issue
+        world = world.model_copy()
 
         search_path = spec.GeneratablePath(path_elements=[])
-        located_entity = world.search_for_entity(self.entity_id, path=search_path)
+        located_entity = world.search_for_entity(self.request.entity_id, path=search_path)
         if located_entity is None:
-            raise ValueError(f"Entity not found: {self.entity_id}")
+            raise ValueError(f"Entity not found: {self.request.entity_id}")
+        
+        generated_entity = located_entity.entity
+        specification = generated_entity.entity_type.get_specification()
+        validation_context = validation.ValidationContext(
+            world=world,
+            current_path=located_entity.path.model_copy(),
+        )
+        validation.validate_generated(validation_context, specification, generated_entity)
+        
+        if self.request.generation_id is not None:
+            generation = self.datastore.generations.get(self.request.generation_id, None)
+            if generation is None:
+                raise ValueError(f"Generation not found: {self.request.generation_id}")
+            generation.apply(world=world)
+        
+        if self.request.template_id is not None:
+            template = self.datastore.generation_templates.get(self.request.template_id, None)
+            if template is None:
+                raise ValueError(f"Template not found: {self.request.template_id}")
+            template.apply(world=world)
 
         exported = export.export_generated_entity(
             world=world,

@@ -6,18 +6,17 @@ from typing import List, Optional, Union, Sized
 
 from structlog import get_logger
 
-import cairne.model.character as characters_model
 import cairne.model.generated as generated_model
 import cairne.model.generation as generate_model
 import cairne.model.specification as spec
 import cairne.model.validation as validation
-import cairne.model.world as worlds_model
-import cairne.schema.characters as characters_schema
 import cairne.schema.generate as generate_schema
 import cairne.schema.generated as generated_schema
 import cairne.schema.worlds as worlds_schema
-from cairne.commands.base import Command
 from cairne.model.world_spec import WORLD
+import cairne.model.templates as template_model
+import cairne.schema.templates as template_schema
+
 
 logger = get_logger(__name__)
 
@@ -50,7 +49,7 @@ def export_generated_object_child(
     children: list[generated_schema.GeneratedField] = []
     for name, child in generatable.children.items():
         child_path = path.append(spec.GeneratablePathElement(key=name))
-        children.append(export_generated_child(child_path, name, child))
+        children.append(export_generated_child(child_path, name, typing.cast(generated_model.Generated, child)))
     return generated_schema.GeneratedField(
         label=label,
         raw_value=json.dumps(generatable.raw),
@@ -61,6 +60,7 @@ def export_generated_object_child(
         choices=None,  # TODO
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=children,
+        generate=generatable.generate,
     )
 
 
@@ -100,7 +100,7 @@ def export_generated_list_child(
     children: list[generated_schema.GeneratedField] = []
     for index, child in enumerate(generatable.elements):
         child_path = path.append(spec.GeneratablePathElement(index=index))
-        children.append(export_generated_child(child_path, f"[{index}]", child))
+        children.append(export_generated_child(child_path, f"[{index}]", typing.cast(generated_model.Generated, child)))
     return generated_schema.GeneratedField(
         label=label,
         raw_value=json.dumps(generatable.raw),
@@ -112,6 +112,12 @@ def export_generated_list_child(
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=children,
         add_value_type=add_value_type,
+        generate=generatable.generate,
+        number_to_generate=generated_schema.NumberToGenerate(
+            number_to_generate=generatable.generation_settings.number_to_generate,
+        )
+        if generatable.generation_settings is not None and generatable.generation_settings.number_to_generate is not None
+        else None,
     )
 
 
@@ -161,10 +167,11 @@ def export_generated_boolean_child(
         choices=None,  # TODO
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=None,
+        generate=generatable.generate,
     )
 
 
-def export_choices(path: spec.GeneratablePath) -> Optional[List[str]]:
+def export_choices(path: spec.GeneratablePath) -> Optional[List[generated_schema.GeneratedFieldChoice]]:
     specification = WORLD.get(path, 0)
     choices = None
     for validator in specification.validators:
@@ -204,6 +211,7 @@ def export_generated_string_child(
         choices=export_choices(path),
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=None,
+        generate=generatable.generate,
     )
 
 
@@ -222,6 +230,7 @@ def export_generated_integer_child(
         choices=None,  # TODO
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=None,
+        generate=generatable.generate,
     )
 
 
@@ -240,6 +249,7 @@ def export_generated_float_child(
         choices=None,  # TODO
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=None,
+        generate=generatable.generate,
     )
 
 
@@ -282,12 +292,6 @@ def export_generated_entity(
     path: spec.GeneratablePath,
     generated_entity: generated_model.GeneratedEntity,
 ) -> generated_schema.GeneratedEntity:
-    specification = generated_entity.entity_type.get_specification()
-    validation_context = validation.ValidationContext(
-        world=world,
-        current_path=path.model_copy(),
-    )
-    validation.validate_generated(validation_context, specification, generated_entity)
 
     # TODO: This doesn't return the validation errors for the entity itself
     fields = export_generated_object_child(path, "", generated_entity).children
@@ -322,26 +326,106 @@ def export_generation_list_item(
     )
 
 
+# def export_generation_result(result: Optional[generate_model.GenerateResult]) -> Optional[generate_schema.GenerationResultView]:
+#     if not result:
+#         return None
+
+#     return generate_schema.GenerationResultView(
+#         raw_text=result.raw_text,
+#         # validated=export_generated_entity(result.parsed),
+#     )
+
+
 def export_generation(
     generation: generate_model.Generation,
-) -> generate_schema.Generation:
-    return generate_schema.Generation(
+    world: generated_model.GeneratedEntity,
+) -> generate_schema.GenerationView:
+    return generate_schema.GenerationView(
         generation_id=generation.generation_id,
+        template=export_template(generation.template_snapshot, world),
         begin_time=generation.begin_time,
         end_time=generation.end_time,
         status=generation.status,
-        world_id=generation.world_id,
-        entity_id=generation.entity_id,
-        entity_type=generation.entity_type,
+        # result=export_generation_result(generation.result),
     )
 
 
-def export_entity_type(entity_type: spec.EntityType) -> worlds_schema.EntityType:
-    return worlds_schema.EntityType(
+def export_entity_type(entity_type: spec.EntityType) -> worlds_schema.EntityTypeView:
+    return worlds_schema.EntityTypeView(
         name=entity_type.value,
         label=entity_type.get_label(),
     )
 
+
+
+def export_template_list_item(
+    template: template_model.GenerationTemplate,
+) -> template_schema.TemplateListItem:
+    return template_schema.TemplateListItem(
+        template_id=template.template_id,
+        name=template.name,
+        entity_id=template.entity_id,
+        world_id=template.world_id,
+        generation_type=template.generation_type,
+        entity_type=export_entity_type(template.entity_type),
+        created_at=template.created_at,
+        updated_at=template.updated_at,
+    )
+
+
+def export_instructions(
+    world: generated_model.GeneratedEntity,
+    template: template_model.GenerationTemplate,
+) -> List[template_schema.InstructionView]:
+    specification = WORLD.get(template.target_path, 0)
+    unfilled_instructions = [
+        instruction.model_copy()
+        for instruction in specification.generation.instructions
+    ]
+    instructions_by_name = {
+        instruction.name: template_schema.InstructionView(
+            name=instruction.name,
+            label=instruction.label or instruction.name,
+            preview=instruction.template,
+            valid=False,
+            included=True,
+        )
+        for instruction in unfilled_instructions
+    }
+    for excluded in template.excluded_instruction_names:
+        instructions_by_name[excluded].included = False
+    
+    generation_variables = template_model.GenerationVariables.create(world)
+    filled_instructions = generation_variables.fill_instructions(unfilled_instructions)
+    for instruction in filled_instructions:
+        instructions_by_name[instruction.name].preview = instruction.message
+        instructions_by_name[instruction.name].valid = True
+    
+    return list(instructions_by_name.values())
+
+
+def export_template(
+    template: template_model.GenerationTemplate,
+    world: generated_model.GeneratedEntity,
+) -> template_schema.GenerationTemplateView:
+    return template_schema.GenerationTemplateView(
+        template_id=template.template_id,
+        name=template.name,
+        created_at=template.created_at,
+        updated_at=template.updated_at,
+        world_id=template.world_id,
+        entity_id=template.entity_id,
+        target_path=template.target_path,
+        entity_type=template.entity_type,
+        generation_type=template.generation_type,
+        generator_model=template.generator_model,
+        prompt=template.additional_prompt,
+        parameters=template.parameters,
+        fields_to_include=[field.path for field in template.fields_to_include],
+        instructions=export_instructions(world, template),
+        json_structure_preview=template.create_json_schema(),
+        validations_to_include=[],  # TODO
+    )
 
 
 # def export_entity_specification_field(
@@ -360,6 +444,8 @@ def export_entity_type(entity_type: spec.EntityType) -> worlds_schema.EntityType
 #             for name, specification in specification.children.items()
 #         ],
 #     )
+
+
 
 
 # def export_generation(path: generated_model.GeneratablePath, generated_entity: generated_model.GeneratedEntity) -> generated_schema.GeneratedEntity:

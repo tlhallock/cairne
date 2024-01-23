@@ -6,10 +6,12 @@ import requests
 from structlog import get_logger
 
 import cairne.model.specification as spec
+import cairne.model.templates as template_model
 import cairne.schema.generate as generate_schema
 import cairne.schema.generated as generated_schema
 import cairne.schema.worlds as worlds_schema
 import cairne.model.generation as generation_model
+import cairne.schema.templates as template_schema
 import time
 
 logger = get_logger(__name__)
@@ -80,14 +82,49 @@ def test_characters():
         assert response.status_code == 200
         create_response = generated_schema.CreateEntityResponse.model_validate(response.json())
 
+        query = generated_schema.GetEntityQuery.model_validate(dict(
+            template_id=None,
+            generation_id=None,
+        ))
         response = requests.get(
-            f"{HOST}/world/{world.entity_id}/entity/{create_response.entity_id}"
+            f"{HOST}/world/{world.entity_id}/entity/{create_response.entity_id}",
+            params=query.model_dump(),
         )
         assert response.status_code == 200
         character_response = generated_schema.GetEntityResponse.model_validate(response.json())
 
         character = character_response.entity
         logger.debug("Got character", character=character)
+        
+        
+        template_request = template_schema.CreateTemplateRequest(
+            name="default character",
+            world_id=world.entity_id,
+            entity_id=character.entity_id,
+            generation_type=template_model.GenerationType.TEXT,
+            generator_model=None,
+        )
+        response = requests.post(
+            f"{HOST}/templates",
+            json=json.loads(template_request.model_dump_json()),
+        )
+        assert response.status_code == 200
+        create_template_response = template_schema.CreateTemplateResponse.model_validate(response.json())
+        
+        
+        
+        
+        
+        delete_template_request = template_schema.DeleteTemplateRequest.model_validate({
+            "template_id": create_template_response.template_id,
+        })
+        response = requests.delete(f"{HOST}/template/{create_template_response.template_id}")
+        assert response.status_code == 200
+        delete_template_response = template_schema.DeleteTemplateResponse.model_validate(response.json())
+        
+            
+        
+        
 
         generate_request = generate_schema.GenerateRequest(
             world_id=world.entity_id,

@@ -11,13 +11,13 @@ class CreateWorldRequest(BaseModel):
     name: str = Field(..., description="Name of the world")
 
 
-class EntityType(BaseModel):
+class EntityTypeView(BaseModel):
     name: str = Field()
     label: str = Field()
 
 
 class ListEntityTypesResponse(Response):
-    entity_types: List[EntityType] = Field(..., description="List of entity types")
+    entity_types: List[EntityTypeView] = Field(..., description="List of entity types")
 
 
 class EntityTypeSummary(BaseModel):

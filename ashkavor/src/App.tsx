@@ -19,6 +19,8 @@ import { EntitiesListRoot } from './components/entities-list-root/entities-list-
 import './App.module.scss';
 
 import { Routes, Route, Link, Outlet, BrowserRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
+import { store } from './store';
 
 import * as React from 'react';
 
@@ -26,25 +28,27 @@ import * as React from 'react';
 function App() {
     return (
         <React.StrictMode>
-            <BrowserRouter>
-                <Routes>
-                    <Route path="/" element={<Landing />} />
-                    <Route path="/models" element={<LoadedModels />} />
-                    <Route path="/worlds" element={<Worlds />} />
-                    <Route path="/world/:worldId" element={<World />}>
-                        <Route index element={<WorldSettings />} />
-                        {/* <Route path="characters" element={<Characters />}>
+            <Provider store={store}>
+                <BrowserRouter>
+                    <Routes>
+                        <Route path="/" element={<Landing />} />
+                        <Route path="/models" element={<LoadedModels />} />
+                        <Route path="/worlds" element={<Worlds />} />
+                        <Route path="/world/:worldId" element={<World />}>
+                            <Route index element={<WorldSettings />} />
+                            {/* <Route path="characters" element={<Characters />}>
                             <Route index element={<CharactersList />} />
                             <Route path=":characterId" element={<Character />} />
                         </Route> */}
-                        <Route path="entities/:entityType" element={<EntitiesListRoot />}>
-                            <Route index element={<WorldEntitiesList />} />
-                            <Route path=":entityId" element={<EntityEditor />} />
+                            <Route path="entities/:entityType" element={<EntitiesListRoot />}>
+                                <Route index element={<WorldEntitiesList />} />
+                                <Route path=":entityId" element={<EntityEditor />} />
+                            </Route>
                         </Route>
-                    </Route>
-                </Routes>
-            </BrowserRouter>
-            {/* <RouterProvider router={router} /> */}
+                    </Routes>
+                </BrowserRouter>
+                {/* <RouterProvider router={router} /> */}
+            </Provider>
         </React.StrictMode>
     );
 }

@@ -14,15 +14,17 @@ import cairne.model.calls as calls
 import cairne.model.generated as generated_model
 import cairne.model.specification as spec
 import cairne.parsing.parse_incomplete_json as parse_incomplete
+import cairne.model.templates as template_model
+from cairne.model.world_spec import WORLD
 
 # TODO: rename this file to generate...
 
 logger = get_logger(__name__)
 
 
-class GenerationEndpoint(str, Enum):
-    CHARACTER = "character"
-    CHARACTERS = "characters"
+# class GenerationEndpoint(str, Enum):
+#     CHARACTER = "character"
+#     CHARACTERS = "characters"
 
 
 class ChatRole(str, Enum):
@@ -52,88 +54,6 @@ class GenerationStopReason(str, Enum):
     ERROR = "error"
 
 
-class GeneratorType(str, Enum):
-    OLLAMA = "ollama"
-    OPENAI = "openai"
-    HUGGING_FACE = "hugging_face"
-
-
-class GenerationType(str, Enum):
-    TEXT = "text"
-    # Should I have a different type for json?
-    IMAGE = "image"
-    AUDIO = "audio"
-
-
-class JsonStructure(BaseModel):
-    json_schema: Optional[str] = Field(default=None)
-    examples: Optional[str] = Field(default=None)
-
-
-class GeneratorModel(BaseModel):
-    generator_type: GeneratorType = Field()
-    g_model_id: str = Field()
-
-
-class GenerationRequestParameters(BaseModel):
-    max_tokens: Optional[int] = Field(default=None)
-    temperature: Optional[float] = Field(default=None)
-    top_p: Optional[float] = Field(default=None)
-    frequency_penalty: Optional[float] = Field(default=None)
-    presence_penalty: Optional[float] = Field(default=None)
-    seed: Optional[int] = Field(default=1776)
-
-
-class Instruction(BaseModel):
-    message: str = Field()
-
-    def format(self, variables: Dict[str, str]) -> str:
-        return self.message.format(**variables)
-
-
-class GenerationVariables(BaseModel):
-    variables: Dict[str, str] = Field(default_factory=dict)
-
-    @classmethod
-    def get_required_variables(cls, prompt: str) -> List[str]:
-        return [
-            arg[1] for arg in string.Formatter().parse(prompt) if arg[1] is not None
-        ]
-
-    def can_evaluate(self, instruction: Instruction) -> bool:
-        for req in GenerationVariables.get_required_variables(instruction.message):
-            if req in self.variables:
-                continue
-            return False
-        return True
-
-    # TODO: maybe a filled instruction is different?
-    def format(self, unfilled_instructions: List[Instruction]) -> List[Instruction]:
-        filled_instructions: List[Instruction] = []
-        # Should this be a set?
-
-        while True:
-            remaining_instructions: List[Instruction] = []
-            for instruction in unfilled_instructions:
-                if not self.can_evaluate(instruction):
-                    remaining_instructions.append(instruction)
-                    continue
-
-                formatted = instruction.format(self.variables)
-                # self.variables[variable.name] = variable.value.format(**variables)
-                filled_instructions.append(Instruction(message=formatted))
-            if len(remaining_instructions) == len(unfilled_instructions):
-                break
-            unfilled_instructions = remaining_instructions
-        if len(remaining_instructions) > 0:
-            logger.warning(f"Could not fill instructions: {remaining_instructions}")
-        return filled_instructions
-
-
-class TargetFields(BaseModel):
-    all: Optional[bool] = Field(default=None)
-    fields: List[str] = Field(default_factory=list)
-    
 
 class BaseGenerationResult(BaseModel):
     raw_text: str = Field()
@@ -160,50 +80,87 @@ GenerateResult = Annotated[
     ],
     Field(discriminator="result_type"),
 ]
-    
-    
+
 
 
 class Generation(BaseModel):
     # assumes a chat model...
-
     generation_id: uuid.UUID = Field(default_factory=uuid.uuid4)
-    world_id: uuid.UUID = Field()
-    entity_id: uuid.UUID = Field()
-    generation_type: GenerationType = Field()
-    entity_type: spec.EntityType = Field()
-    target_path: spec.GeneratablePath = Field()
+    template_snapshot: template_model.GenerationTemplate = Field()
 
-    generator_model: GeneratorModel = Field()
-    parameters: GenerationRequestParameters = Field(
-        default_factory=GenerationRequestParameters
-    )
-
+    # TODO: these should only be additional?
+    # TODO: maybe remove this, more for a chat...
     prompt_messages: List[GenerationChatMessage] = Field(default=None)
-    filled_instructions: List[Instruction] = Field(default=None)
-    generation_variables: GenerationVariables = Field(
-        default_factory=GenerationVariables
-    )
-    json_structure: Optional[JsonStructure] = Field(default=None)
-
-    # endpoint: GenerationEndpoint = Field()
-    # request...
+    filled_instructions: List[template_model.FilledInstruction] = Field(default=None)
+    
+    # Not really needed
+    json_structure: Optional[template_model.JsonStructure] = Field(default=None)
 
     begin_time: datetime.datetime = Field(default_factory=datetime.datetime.utcnow)
     end_time: Optional[datetime.datetime] = Field(default=None)
-    # Time for llm calls as separate fields?
     status: GenerationStatus = Field(default=GenerationStatus.QUEUED)
-
-    input_tokens: Optional[int] = Field(default=None)
-    output_tokens: Optional[int] = Field(default=None)
     
     result: Optional[GenerateResult] = Field(default=None)
-
-    # Need to store the result
-    # TODO: need to store the location to put the result? world id, entity id
+    deletion: Optional[generated_model.Deletion] = Field(default=None)
     
     def as_source(self) -> generated_model.GenerationSource:
         return generated_model.GenerationSource(
             source_type=generated_model.GenerationSourceType.MODEL_CALL,
+        )
+    
+    def apply(self, world: generated_model.GeneratedEntity) -> None:
+        if not self.result:
+            return
+        # TODO: set the generated values
+        pass
+    
+    @staticmethod
+    def create(
+        template: template_model.GenerationTemplate,
+        world: generated_model.GeneratedEntity,
+    ) -> "Generation":
+        specification = WORLD.get(template.target_path, 0)
+        generation_variables = template_model.GenerationVariables.create(world)
+        instruction_templates = template.get_instructions()
+        filled_instructions = generation_variables.fill_instructions(instruction_templates)
+        generate_json = True
+        if generate_json:
+            json_schema = template.create_json_schema()
+            json_example = specification.create_example()
+            json_structure = template_model.JsonStructure(
+                json_schema=json_schema,
+                examples=json_example,
+            )
+            # TODO: This is actually only for openai...
+            filled_instructions.append(
+                template_model.FilledInstruction(
+                    name="json-example",
+                    message=f"Please format your response as JSON. For example:\n{json_example}"
+                )
+            )
+        else:
+            json_structure = None
+
+        prompt_messages = [
+            GenerationChatMessage(
+                role=ChatRole.SYSTEM,
+                message="You are a game developer, skilled in creating engaging, open-world plots full of suspense.",
+            ),
+            GenerationChatMessage(
+                role=ChatRole.ASSISTANT,
+                message="\n".join(instruction.message for instruction in filled_instructions),
+            ),
+        ]
+        if template.additional_prompt:
+            prompt_messages.append(GenerationChatMessage(
+                role=ChatRole.USER,
+                message=template.additional_prompt,
+            ))
+        return Generation(
+            template_snapshot=template.model_copy(),
+            filled_instructions=filled_instructions,
+            json_structure=json_structure,
+            prompt_messages=prompt_messages,
+            status=GenerationStatus.QUEUED,
         )
 

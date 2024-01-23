@@ -32,7 +32,6 @@ export const FreeFormChat = ({ className }: FreeFormChatProps) => {
                 return;
             }
             setEntity(response.entity);
-            console.log('Generated entity', response.entity);
         });
     }, [refreshCounter]);
 

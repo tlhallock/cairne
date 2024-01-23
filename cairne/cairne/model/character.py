@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
-import cairne.model.generated as gen
+import cairne.model.generated as generated_model
 
 
 class Archetype(str, Enum):

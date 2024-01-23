@@ -7,8 +7,10 @@ from pydantic import BaseModel, Field
 
 import cairne.model.generated as generated_model
 import cairne.model.generation as generation_model
+import cairne.model.templates as template_model
 import cairne.model.specification as spec
 from cairne.schema.base import Response
+import cairne.schema.templates as template_schema
 
 # class GenerationProgress(BaseModel):
 #     generation_id: uuid.UUID = Field()
@@ -17,6 +19,23 @@ from cairne.schema.base import Response
 #     status: GenerationStatus = Field()
 #     # mean_duration: datetime.timedelta = Field(..., description="Mean duration of generation")
 
+
+class GenerateModelChoice(BaseModel):
+    label: str = Field()
+    value: template_model.GeneratorType = Field()
+    defaultModel: str = Field()
+    models: List[str] = Field()
+    
+    @classmethod
+    def from_model(cls, model: template_model.GeneratorType) -> 'GenerateModelChoice':
+        return cls(
+            label=model.get_label(),
+            value=model.value,
+            defaultModel=model.get_default_model(),
+            models=model.get_models(),
+        )
+
+    
 
 
 
@@ -28,30 +47,15 @@ class GenerationListItem(BaseModel):
     status: generation_model.GenerationStatus = Field()
 
 
-# class GenerationTargetPath(BaseModel):
-#     generatable_id: uuid.UUID = Field()
-#     field: str = Field()
-
-
-
-
-class GenerationResult(BaseModel):
-    raw_text: str = Field()
-    validated: generated_model.Generated = Field()
-
-
-class Generation(BaseModel):
+class GenerationView(BaseModel):
     generation_id: uuid.UUID = Field()
-    world_id: uuid.UUID = Field()
-    entity_id: uuid.UUID = Field()
-    entity_type: spec.EntityType = Field()
-    target_path: spec.GeneratablePath = Field()
+    template: template_schema.GenerationTemplateView = Field()
 
     begin_time: datetime.datetime = Field()
     end_time: Optional[datetime.datetime] = Field()
     status: generation_model.GenerationStatus = Field()
-
-    result: Optional[GenerationResult] = Field(default=None)
+    # result !?
+    # No, I remember now: I was clever, and it applies itself to a generated
 
 
 class JsonStructureRequest(BaseModel):
@@ -61,34 +65,7 @@ class JsonStructureRequest(BaseModel):
 
 
 class GenerateRequest(BaseModel):
-    # is this required?
-    # generation_endpoint: generation_model.GenerationEndpoint = Field()
-
-    world_id: uuid.UUID = Field()
-    entity_id: uuid.UUID = Field(default=None)
-    fields_to_generate: Optional[generation_model.TargetFields] = Field(default=None)
-
-    generator_model: Optional[generation_model.GeneratorModel] = Field(default=None)
-    parameters: Optional[generation_model.GenerationRequestParameters] = Field(
-        default=None
-    )
-
-    prompt_messages: Optional[List[generation_model.GenerationChatMessage]] = Field(
-        default=None
-    )
-    instructions: Optional[List[generation_model.Instruction]] = Field(default=None)
-    json_structure: Optional[JsonStructureRequest] = Field(default=None)
-
-    # validations to fix
-    # reveal previous, instructions from previous
-    # instructions/prompt/temperature/etc
-
-    # generator_model: generation_model.GeneratorModel = Field(
-    # 	default_factory=lambda: generation_model.GeneratorModel(
-    # 		generator_type=generation_model.GeneratorType.OPENAI,
-    # 		g_model_id="gpt3-turbo",
-    # 	)
-    # )
+    template_id: uuid.UUID = Field()
 
 
 class GenerateResponse(Response):
@@ -100,7 +77,7 @@ class ListGenerationsResponse(Response):
 
 
 class GetGenerationResponse(Response):
-    generation: Generation = Field()
+    generation: GenerationView = Field()
 
 
 class CancelGenerationRequest(BaseModel):
@@ -111,9 +88,38 @@ class CancelGenerationResponse(Response):
     generation_id: uuid.UUID = Field()
 
 
+class DeleteGenerationResponse(Response):
+    pass
+
+
 class ApplyGenerationRequest(BaseModel):
     generation_id: uuid.UUID = Field()
 
 
 class ApplyGenerationResponse(Response):
     generation_id: uuid.UUID = Field()
+
+
+# TODO: rename this to reponse
+class ListGenerationModels(Response):
+    default_generator_type: template_model.GeneratorType = Field(default_factory=lambda: template_model.GeneratorType.OPENAI)
+    models: List[GenerateModelChoice] = Field(default_factory=lambda: [
+        GenerateModelChoice.from_model(
+            template_model.GeneratorType.OPENAI
+        ),
+        GenerateModelChoice.from_model(
+            template_model.GeneratorType.HUGGING_FACE
+        ),
+        GenerateModelChoice.from_model(
+            template_model.GeneratorType.OLLAMA
+        ),
+    ])
+
+
+class ListGenerationsQuery(BaseModel):
+    entity_id: Optional[uuid.UUID] = None
+    
+    def includes(self, generation: generation_model.Generation) -> bool:
+        if self.entity_id is None:
+            return True
+        return generation.template_snapshot.entity_id == self.entity_id

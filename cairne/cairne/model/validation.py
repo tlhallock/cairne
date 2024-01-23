@@ -12,7 +12,7 @@ from structlog import get_logger
 
 import cairne.model.calls as calls
 # rename this to generated_model
-import cairne.model.generated as gen
+import cairne.model.generated as generated_model
 import cairne.model.parsing as parsing
 import cairne.model.specification as spec
 import cairne.parsing.parse_incomplete_json as parse_incomplete
@@ -23,9 +23,9 @@ logger = get_logger(__name__)
 
 @dataclass
 class ValidationContext:
-    world: gen.GeneratedEntity = field()
+    world: generated_model.GeneratedEntity = field()
     current_path: spec.GeneratablePath = field()
-    generated_stack: List[gen.GeneratedBase] = field(default_factory=list)
+    generated_stack: List[generated_model.GeneratedBase] = field(default_factory=list)
     errors: List[spec.ValidationError] = field(default_factory=list)
     success: bool = field(default=True)
     # validated?
@@ -43,7 +43,7 @@ class ValidationContext:
 
     @contextmanager
     def with_path(
-        self, path_element: spec.GeneratablePathElement, generated: gen.GeneratedBase
+        self, path_element: spec.GeneratablePathElement, generated: generated_model.GeneratedBase
     ) -> Generator[None, None, None]:
         old_path = self.current_path
         self.current_path = self.current_path.append(path_element)
@@ -64,10 +64,10 @@ class ValidationContext:
 def validate_nonnegative(
     context: ValidationContext,
     specification: spec.ValidatorSpecification,
-    parsed: gen.GeneratedValue,
+    parsed: generated_model.GeneratedValue,
 ):
-    if isinstance(parsed, gen.GeneratedFloat):
-        float_value = typing.cast(gen.GeneratedFloat, parsed)
+    if isinstance(parsed, generated_model.GeneratedFloat):
+        float_value = typing.cast(generated_model.GeneratedFloat, parsed)
         parsed_float = float_value.parsed
         if parsed_float is None:
             return
@@ -78,8 +78,8 @@ def validate_nonnegative(
                     message=f"expected a positive float, found {parsed_float}",
                 )
             )
-    elif isinstance(parsed, gen.GeneratedInteger):
-        integer_value = typing.cast(gen.GeneratedInteger, parsed)
+    elif isinstance(parsed, generated_model.GeneratedInteger):
+        integer_value = typing.cast(generated_model.GeneratedInteger, parsed)
         parsed_integer = integer_value.parsed
         if parsed_integer is None:
             return
@@ -102,7 +102,7 @@ def validate_nonnegative(
 def validate_name(
     context: ValidationContext,
     specification: spec.ValidatorSpecification,
-    parsed: gen.GeneratedBase,
+    parsed: generated_model.GeneratedBase,
 ):
     pass
 
@@ -110,7 +110,7 @@ def validate_name(
 def validate_required(
     context: ValidationContext,
     specification: spec.ValidatorSpecification,
-    parsed: gen.GeneratedBase,
+    parsed: generated_model.GeneratedBase,
 ):
     if not parsed.is_generated():
         context.add_error(
@@ -122,7 +122,7 @@ def validate_required(
 
 
 def find_option(
-    specification: spec.OneOfLiteralValidator, parsed: gen.GeneratedString
+    specification: spec.OneOfLiteralValidator, parsed: generated_model.GeneratedString
 ) -> Optional[Any]:
     for option, representations in specification.options:
         for repr in representations:
@@ -134,9 +134,9 @@ def find_option(
 def validate_one_of_literal(
     context: ValidationContext,
     specification: spec.OneOfLiteralValidator,
-    parsed: gen.GeneratedBase,
+    parsed: generated_model.GeneratedBase,
 ) -> None:
-    if not isinstance(parsed, gen.GeneratedString):
+    if not isinstance(parsed, generated_model.GeneratedString):
         context.add_error(
             spec.ValidationError(
                 path=context.create_path(), message=f"expected a value, found {parsed}"
@@ -169,16 +169,16 @@ def validate_one_of_literal(
 
 def validate_one_of_generated_list_of_strings(
     context: ValidationContext,
-    generated_list: gen.GeneratedList,
-    parsed: gen.GeneratedBase,
+    generated_list: generated_model.GeneratedList,
+    parsed: generated_model.GeneratedBase,
 ) -> None:
     possible_values: List[str] = []
     for element in generated_list.elements:
-        generated_string = typing.cast(gen.GeneratedString, element)
+        generated_string = typing.cast(generated_model.GeneratedString, element)
         if generated_string.parsed is None:
             continue
         possible_values.append(generated_string.parsed)
-    string_to_validate = typing.cast(gen.GeneratedString, parsed).parsed
+    string_to_validate = typing.cast(generated_model.GeneratedString, parsed).parsed
     if string_to_validate is None:
         # This can have its own required validator
         return
@@ -196,13 +196,13 @@ def validate_one_of_generated_list_of_strings(
 def validate_one_of_generated(
     context: ValidationContext,
     specification: spec.OneOfGeneratedValidator,
-    parsed: gen.GeneratedBase,
+    parsed: generated_model.GeneratedBase,
 ) -> None:
     # We need to get this from the world...
-    generated_options: gen.Generated = context.world.get(specification.path, 0)
+    generated_options: generated_model.Generated = context.world.get(specification.path, 0)
     generated_options_specification = WORLD.get(specification.path, 0)
 
-    if not isinstance(generated_options, gen.GeneratedList):
+    if not isinstance(generated_options, generated_model.GeneratedList):
         context.add_error(
             spec.ValidationError(
                 path=context.create_path(),
@@ -210,7 +210,7 @@ def validate_one_of_generated(
             )
         )
         return
-    generated_list = typing.cast(gen.GeneratedList, generated_options)
+    generated_list = typing.cast(generated_model.GeneratedList, generated_options)
     if not isinstance(generated_options_specification, spec.ListSpecification):
         context.add_error(
             spec.ValidationError(
@@ -256,7 +256,7 @@ def validate_one_of_generated(
 def validate_field(
     context: ValidationContext,
     specification: spec.ValidatorSpecification,
-    parsed: gen.GeneratedBase,
+    parsed: generated_model.GeneratedBase,
 ):
     if specification.validator_name == spec.ValidatorName.REQUIRED:
         validate_required(context, specification, parsed)
@@ -268,7 +268,7 @@ def validate_field(
         validate_name(context, specification, parsed)
     elif specification.validator_name == spec.ValidatorName.NONNEGATIVE:
         validate_nonnegative(
-            context, specification, typing.cast(gen.GeneratedValue, parsed)
+            context, specification, typing.cast(generated_model.GeneratedValue, parsed)
         )
     elif specification.validator_name == spec.ValidatorName.ONE_OF_GENERATED:
         validate_one_of_generated(
@@ -282,14 +282,14 @@ def validate_field(
 def validate_generated(
     context: ValidationContext,
     specification: spec.GeneratableSpecification,
-    generatable: gen.GeneratedBase,
+    generatable: generated_model.GeneratedBase,
 ):
     generatable.validation_errors = []
     for validator in specification.validators:
         validate_field(context, validator, generatable)
 
     if isinstance(specification, spec.ValueSpecification):
-        if not isinstance(generatable, gen.GeneratedValue):
+        if not isinstance(generatable, generated_model.GeneratedValue):
             context.add_error(
                 spec.ValidationError(
                     path=context.create_path(),
@@ -297,7 +297,7 @@ def validate_generated(
                 )
             )
             return
-        value = typing.cast(gen.GeneratedValue, generatable)
+        value = typing.cast(generated_model.GeneratedValue, generatable)
     # elif isinstance(specification, spec.EntitySpecification):
     # 	if not isinstance(generatable, gen.GeneratedEntity):
     # 		context.add_error(
@@ -309,7 +309,7 @@ def validate_generated(
     # 		return
     # 	entity = typing.cast(gen.GeneratedEntity, generatable)
     elif isinstance(specification, spec.EntityDictionarySpecification):
-        if not isinstance(generatable, gen.EntityDictionary):
+        if not isinstance(generatable, generated_model.EntityDictionary):
             context.add_error(
                 spec.ValidationError(
                     path=context.create_path(),
@@ -317,7 +317,7 @@ def validate_generated(
                 )
             )
             return
-        dictionary = typing.cast(gen.EntityDictionary, generatable)
+        dictionary = typing.cast(generated_model.EntityDictionary, generatable)
         for uuid_key, child_entity in dictionary.entities.items():
             with context.with_path(
                 spec.GeneratablePathElement(entity_id=uuid_key), generated=child_entity
@@ -328,7 +328,7 @@ def validate_generated(
                     generatable=child_entity,
                 )
     elif isinstance(specification, spec.ListSpecification):
-        if not isinstance(generatable, gen.GeneratedList):
+        if not isinstance(generatable, generated_model.GeneratedList):
             context.add_error(
                 spec.ValidationError(
                     path=context.create_path(),
@@ -336,7 +336,7 @@ def validate_generated(
                 )
             )
             return
-        generated_list = typing.cast(gen.GeneratedList, generatable)
+        generated_list = typing.cast(generated_model.GeneratedList, generatable)
         for index, element in enumerate(generated_list.elements):
             with context.with_path(
                 spec.GeneratablePathElement(index=index), generated=element
@@ -347,7 +347,7 @@ def validate_generated(
                     generatable=element,
                 )
     elif isinstance(specification, spec.ObjectSpecification):
-        if not isinstance(generatable, gen.GeneratedObject):
+        if not isinstance(generatable, generated_model.GeneratedObject):
             context.add_error(
                 spec.ValidationError(
                     path=context.create_path(),
@@ -355,7 +355,7 @@ def validate_generated(
                 )
             )
             return
-        generated_object = typing.cast(gen.GeneratedObject, generatable)
+        generated_object = typing.cast(generated_model.GeneratedObject, generatable)
         for child_key, child_field in generated_object.children.items():
             child_specification = specification.children.get(child_key, None)
             if not child_specification:

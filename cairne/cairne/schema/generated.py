@@ -31,31 +31,45 @@ class GenerationHistory(BaseModel):
     pass
 
 
-class GenerationState(BaseModel):
-    # Use the raw value or the parsed value?
-    # Use type specific classes, object vs list or just put everything in json?
-    # Include the path for each field
-    pass
-
-
 class GeneratedFieldChoice(BaseModel):
     label: str = Field()
     value: str = Field()
+
+
+class NumberToGenerate(BaseModel):
+    any: bool = Field(default=False)
+    number_to_generate: int = Field()
 
 
 class GeneratedField(BaseModel):
     label: str = Field()
     raw_value: str = Field()
     value_js: str = Field()
-    # display_path: List[str] = Field(default_factory=list)
-    value_type: GeneratedValueEditor = Field()
     edit_path: spec.GeneratablePath = Field()
-    edit_path_key: str = Field()
-    choices: Optional[List[GeneratedFieldChoice]] = Field(default=None)
+    generated_value_js: Optional[str] = Field(default=None)
+    
     validation_errors: List[str] = Field(default_factory=list)
+    
+    # For object fields:
+    generate: Optional[bool] = Field(default=None)
+    
+    # TODO: remove
+    edit_path_key: str = Field()
+    # TODO: These should be from the editor specification...
+    value_type: GeneratedValueEditor = Field()
+    
+    # For values
+    choices: Optional[List[GeneratedFieldChoice]] = Field(default=None)
+    
+    # for containers
     children: Optional[List["GeneratedField"]] = Field(default_factory=list)
+    
+    # for entity dictionaries
+    entity_dictionary_type: Optional[worlds_schema.EntityTypeView] = Field(default=None)
+
+    # for lists
     add_value_type: Optional[GeneratedValueEditor] = Field(default=None)
-    entity_dictionary_type: Optional[worlds_schema.EntityType] = Field(default=None)
+    number_to_generate: Optional[NumberToGenerate] = Field(default=None)
 
     # TODO: history
     # TODO: all validations
@@ -94,9 +108,25 @@ class ListEntitiesResponse(Response):
     entities: List[GeneratedEntityListItem] = Field(default_factory=list)
 
 
+class GetEntityQuery(BaseModel):
+    template_id: Optional[uuid.UUID] = Field(default=None)
+    generation_id: Optional[uuid.UUID] = Field(default=None)
+
+
 class GetEntityRequest(BaseModel):
     world_id: uuid.UUID = Field()
-    entity_id: Optional[uuid.UUID] = Field(default=None)
+    entity_id: uuid.UUID = Field()
+    template_id: Optional[uuid.UUID] = Field(default=None)
+    generation_id: Optional[uuid.UUID] = Field(default=None)
+
+    @staticmethod
+    def from_query(world_id: uuid.UUID, entity_id: uuid.UUID, query: Optional[GetEntityQuery]=None) -> "GetEntityRequest":
+        return GetEntityRequest(
+            world_id=world_id,
+            entity_id=entity_id,
+            template_id=query.template_id if query is not None else None,
+            generation_id=query.generation_id if query is not None else None,
+        )
 
 
 class GetEntityResponse(Response):

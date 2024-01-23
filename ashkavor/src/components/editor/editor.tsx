@@ -23,6 +23,23 @@ import {
 
 import { ListAdder } from './list-editor';
 
+// const getGeneratedField = (
+//     generationState: generation.GenerationState,
+//     field: openrpg.GeneratedField
+//     // TODO: Add the generation result field...
+// ): generation.StructuredGenerationField => {
+//     const existing = generationState.generationFields[field.edit_path_key];
+//     if (existing) {
+//         return existing;
+//     }
+//     return {
+//         unique_path_key: field.edit_path_key,
+//         path: field.edit_path,
+//         generate: false,
+//         generated: null,
+//     };
+// };
+
 interface ValidationsProps {
     validationErrors?: openrpg.ValidationErrors;
 }
@@ -50,7 +67,6 @@ const Spacer = ({ depth }: SpacerProps) => {
 
 interface UpdaterProps {
     path: openrpg.GeneratablePath;
-    onEdit: () => void;
     jsValue: string;
     clearJsValue: () => void;
     validEdits: boolean;
@@ -92,7 +108,6 @@ const Field = (props: FieldProps) => {
     }
     const updateProps: UpdaterProps = {
         path: props.field.edit_path,
-        onEdit: props.onEdit,
         jsValue: jsValue,
         clearJsValue: () => setJsValue(''),
         validEdits,
@@ -173,11 +188,7 @@ const Field = (props: FieldProps) => {
             )}
 
             <Validations validationErrors={props.field.validation_errors} />
-            <StructuredGenerationField
-                generatedField={props.field}
-                generationState={props.generationState}
-                setGenerationState={props.setGenerationState}
-            />
+            <StructuredGenerationField generatedField={props.field} />
 
             {props.field.children?.map((value, index) => (
                 // Maybe this should be a field list item?
@@ -190,17 +201,9 @@ const Field = (props: FieldProps) => {
 
 export interface FieldsProps {
     fields: openrpg.GeneratedField[];
-    onEdit: () => void;
-    generationState: generation.GenerationState;
-    setGenerationState: (state: generation.GenerationState) => void;
 }
 
-export const FieldsEditor = ({
-    fields,
-    onEdit,
-    generationState,
-    setGenerationState,
-}: FieldsProps) => {
+export const FieldsEditor = ({ fields }: FieldsProps) => {
     return (
         <div style={FIELD_STYLES}>
             <label>Field</label>
@@ -210,14 +213,7 @@ export const FieldsEditor = ({
             <div />
             <div />
             {fields?.map((field) => (
-                <Field
-                    key={field.label}
-                    field={field}
-                    onEdit={onEdit}
-                    generationState={generationState}
-                    setGenerationState={setGenerationState}
-                    depth={0}
-                />
+                <Field key={field.label} field={field} depth={0} />
             ))}
         </div>
     );

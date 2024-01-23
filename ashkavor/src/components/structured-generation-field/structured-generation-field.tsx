@@ -1,40 +1,55 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import * as openrpg from '../../openrpg/schema/schema';
 import React from 'react';
-import { getWorlds } from '../../openrpg/client';
+import { getWorlds, updateTemplate } from '../../openrpg/client';
 import * as generation from '../../openrpg/generation';
-
-const findGenerationField = (
-    generationSchema: openrpg.EntityGenerationSchema | undefined,
-    generatedField: openrpg.GeneratedField
-) => {
-    if (!generationSchema) {
-        return undefined;
-    }
-    return generationSchema.fields.find((f) => f.name === generatedField.label);
-};
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../../store';
+import { fetchEntity, fetchTemplate } from '../../openrpg/reducers/templates';
 
 export interface StructuredGenerationFieldProps {
     generatedField: openrpg.GeneratedField;
-    generationState: generation.GenerationState;
-    setGenerationState: (state: generation.GenerationState) => void;
 }
 
-export const StructuredGenerationField = ({
-    generatedField,
-    generationState,
-    setGenerationState,
-}: StructuredGenerationFieldProps) => {
+export const StructuredGenerationField = ({ generatedField }: StructuredGenerationFieldProps) => {
     const location = useLocation();
-    const navigate = useNavigate();
-
     const worldId = location.pathname.split('/')[2];
     const entityType = location.pathname.split('/')[4];
     const entityId = location.pathname.split('/')[5];
 
-    const isGenerated = false; // generation.isFieldGenerated(generationState, field?.name);
+    const navigate = useNavigate();
+
+    const templatesState = useSelector((state: RootState) => state.templates);
+    const templateId = templatesState?.entities[entityId]?.editingTemplateId;
+
+    const dispatch = useDispatch();
+
+    const isGenerated = generatedField?.generate || false;
+    if (generatedField.label == 'name') {
+        console.log('Found field', generatedField);
+        console.log('is generated', isGenerated);
+    }
     const toggleGenerate = () => {
-        // setGenerationState(generation.toggleField(generationState, field?.name));
+        if (!templateId) {
+            return;
+        }
+
+        const updates: openrpg.UpdateTemplateRequest = {
+            template_id: templateId,
+            new_name: null,
+            generator_model: null,
+            include_fields: isGenerated ? null : [generatedField.edit_path],
+            exclude_fields: isGenerated ? [generatedField.edit_path] : null,
+            number_to_generate: null,
+            instructions_to_include: [],
+            instructions_to_exclude: null,
+            prompt: null,
+            parameter_updates: null,
+        };
+        updateTemplate(updates, (response: openrpg.UpdateTemplateResponse) => {
+            dispatch(fetchTemplate(templateId));
+            dispatch(fetchEntity(worldId, entityId));
+        });
     };
 
     // Need to also get the generation result....
@@ -46,7 +61,7 @@ export const StructuredGenerationField = ({
                 type="checkbox"
                 checked={isGenerated}
                 onChange={toggleGenerate}
-                disabled={true}
+                disabled={!templateId}
             />
         </div>
     );

@@ -1,26 +1,27 @@
-import datetime
+
 import uuid
 from dataclasses import dataclass, field
-from typing import Optional
 
 import cairne.commands.export as export
-import cairne.model.character as characters
-import cairne.model.generation as generation_model
-import cairne.model.specification as spec
-import cairne.model.world as worlds
-import cairne.schema.characters as characters_schema
 import cairne.schema.generate as generate_schema
-import cairne.schema.generated as generated_schema
-import cairne.schema.worlds as worlds_schema
 from cairne.commands.base import Command
 from cairne.model.world_spec import WORLD
+import cairne.model.generated as generated_model
+from typing import Optional
+import datetime
 
 
 @dataclass
 class ListGenerations(Command):
+    request: generate_schema.ListGenerationsQuery
+    
     def execute(self) -> generate_schema.ListGenerationsResponse:
         generations = []
         for generation in self.datastore.generations.values():
+            if generation.deletion is not None:
+                continue
+            if not self.request.includes(generation):
+                continue
             generations.append(export.export_generation_list_item(generation))
         return generate_schema.ListGenerationsResponse(generations=generations)
 
@@ -33,8 +34,11 @@ class GetGeneration(Command):
         generation = self.datastore.generations.get(self.generation_id, None)
         if generation is None:
             raise ValueError(f"Generation not found: {self.generation_id}")
+        world = self.datastore.worlds.get(generation.template_snapshot.world_id, None)
+        if world is None:
+            raise ValueError(f"World not found: {generation.template_snapshot.world_id}")
 
-        exported = export.export_generation(generation)
+        exported = export.export_generation(generation, world)
         return generate_schema.GetGenerationResponse(generation=exported)
 
 
@@ -82,3 +86,17 @@ class ApplyGeneration(Command):
 #         entity_specification = self.entity_type.get_specification()
 #         schema = export.export_entity_specification(entity_specification)
 #         return generated_schema.GetEntitySchemaResponse(schema=schema)
+
+@dataclass
+class DeleteGeneration(Command):
+    generation_id: uuid.UUID
+    
+    def execute(self) -> generate_schema.DeleteGenerationResponse:
+        generation = self.datastore.generations.pop(self.generation_id, None)
+        if generation is None:
+            raise ValueError(f"Generation not found: {self.generation_id}")
+        generation.deletion = generated_model.Deletion(
+            date=datetime.datetime.utcnow(),
+            deleted_by=self.user,
+        )
+        return generate_schema.DeleteGenerationResponse()

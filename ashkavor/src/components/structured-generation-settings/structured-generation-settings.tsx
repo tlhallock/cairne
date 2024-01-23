@@ -31,48 +31,5 @@ export const StructuredGenerationSettings = ({
         // Get generator types
     }, []);
 
-    return (
-        <div>
-            <label>Generator Type</label>
-            <select
-                name="generator-type"
-                id="generator-type"
-                value={generationState.generatorTypeChoice.value}
-                onChange={({ target: { value } }) => {
-                    for (const generatorType of generation.DEFAULT_GENERATOR_TYPES) {
-                        if (generatorType.value === value) {
-                            setGenerationState(
-                                generation.setGenerationType(generationState, value)
-                            );
-                        }
-                    }
-                }}
-            >
-                {generation.DEFAULT_GENERATOR_TYPES.map((generatorType) => (
-                    <option key={generatorType.value} value={generatorType.value}>
-                        {generatorType.label}
-                    </option>
-                ))}
-            </select>
-            <label>Model</label>
-            <select
-                name="generator-model"
-                id="generator-model"
-                value={generatorModel}
-                onChange={(e) => {
-                    setGeneratorModel(e.target.value);
-                }}
-            >
-                {generationState.generatorTypeChoice.models.map((generatorModel) => (
-                    <option key={generatorModel} value={generatorModel}>
-                        {generatorModel}
-                    </option>
-                ))}
-            </select>
-            <br />
-
-            <label>Instructions</label>
-            <textarea />
-        </div>
-    );
+    return <div></div>;
 };

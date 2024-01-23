@@ -27,8 +27,5 @@ export const HEADER_STYLES = {
 
 export interface FieldProps {
     field: openrpg.GeneratedField;
-    onEdit: () => void;
-    generationState: generation.GenerationState;
-    setGenerationState: (state: generation.GenerationState) => void;
     depth: number;
 }
