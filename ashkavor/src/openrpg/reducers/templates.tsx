@@ -219,7 +219,6 @@ export const fetchEntity =
             })
         );
         const state = getState();
-        console.log('state', state);
         const templateId = entityId ? state.templates.entities[entityId]?.editingTemplateId : null;
         const generationId = entityId
             ? state.templates.entities[entityId]?.currentGenerationId
@@ -233,6 +232,7 @@ export const fetchEntity =
                 if (!response.entity) {
                     return;
                 }
+                console.log('Found entity', response.entity);
                 dispatch(
                     templatesSlice.actions.setEntity({
                         entity: response.entity,
@@ -240,7 +240,4 @@ export const fetchEntity =
                 );
             }
         );
-
-        dispatch(listEntityTemplates(entityId));
-        dispatch(listEntityGenerations(entityId));
     };

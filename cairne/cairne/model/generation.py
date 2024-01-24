@@ -16,6 +16,7 @@ import cairne.model.specification as spec
 import cairne.parsing.parse_incomplete_json as parse_incomplete
 import cairne.model.templates as template_model
 from cairne.model.world_spec import WORLD
+import cairne.model.parsing as parsing
 
 # TODO: rename this file to generate...
 
@@ -108,12 +109,14 @@ class Generation(BaseModel):
             source_type=generated_model.GenerationSourceType.MODEL_CALL,
         )
     
-    def apply(self, world: generated_model.GeneratedEntity) -> None:
+    def apply(self, world: generated_model.GeneratedEntity, parsed: generated_model.GeneratedEntity) -> None:
         if not self.result:
             return
-        # TODO: set the generated values
-        pass
-    
+        destination = world.get(self.template_snapshot.target_path, 0)
+        if not isinstance(destination, generated_model.GeneratedEntity):
+            raise ValueError(f"Expected generated entity, got {destination}")
+        destination.apply_generation(parsed)
+
     @staticmethod
     def create(
         template: template_model.GenerationTemplate,
@@ -129,7 +132,7 @@ class Generation(BaseModel):
             json_example = specification.create_example()
             json_structure = template_model.JsonStructure(
                 json_schema=json_schema,
-                examples=json_example,
+                example_str=json.dumps(json_example),
             )
             # TODO: This is actually only for openai...
             filled_instructions.append(
@@ -157,7 +160,7 @@ class Generation(BaseModel):
                 message=template.additional_prompt,
             ))
         return Generation(
-            template_snapshot=template.model_copy(),
+            template_snapshot=template.model_copy(deep=True),
             filled_instructions=filled_instructions,
             json_structure=json_structure,
             prompt_messages=prompt_messages,

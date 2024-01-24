@@ -154,7 +154,7 @@ export const getGeneration = (
     onError: (error: Error) => void = (error: Error) => console.log(error)
 ) => {
     axios
-        .get('/generate/' + generationId)
+        .get('/generation/' + generationId)
         .then((r) => onStatus(r.data))
         .catch(onError);
 };

@@ -20,6 +20,7 @@ import {
     listEntityGenerations,
     editTemplate,
     viewGeneration,
+    fetchEntity,
 } from '../../openrpg/reducers/templates';
 
 export interface GenerationTemplatesProps {}
@@ -93,7 +94,10 @@ export const GenerationTemplates = ({}: GenerationTemplatesProps) => {
             <br />
             <label>Generation:</label>
             <select
-                onChange={(e) => dispatch(viewGeneration(entityId, e.target.value))}
+                onChange={(e) => {
+                    dispatch(viewGeneration(entityId, e.target.value));
+                    dispatch(fetchEntity(worldId, entityId));
+                }}
                 value={templatesState?.entities[entityId]?.currentGenerationId || ''}
             >
                 <option value="">Select a Generation</option>
@@ -101,7 +105,7 @@ export const GenerationTemplates = ({}: GenerationTemplatesProps) => {
                     (generation) => {
                         return (
                             <option key={generation.generation_id} value={generation.generation_id}>
-                                {generation.name}
+                                {generation.label}
                             </option>
                         );
                     }

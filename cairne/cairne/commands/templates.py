@@ -131,6 +131,7 @@ class UpdateTemplate(Command):
                 for field in template.fields_to_include
                 if field.path.as_str() not in exclude_strings
             ]
+            print("new fields to include", template.fields_to_include)
         
         if self.request.number_to_generate is not None:
             logger.info("TODO: Update number to generate")

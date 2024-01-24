@@ -29,7 +29,7 @@ class PathSplit(BaseModel):
 def split_path(path: spec.GeneratablePath) -> PathSplit:
     if len(path.path_elements) == 0:
         print("uh oh")
-    path_elements = path.model_copy().path_elements
+    path_elements = path.model_copy(deep=True).path_elements
 
     return PathSplit(
         parent_path=spec.GeneratablePath(path_elements=path_elements[:-1]),

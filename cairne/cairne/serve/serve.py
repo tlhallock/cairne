@@ -28,6 +28,7 @@ from cairne.serve.data_store import Datastore
 # add editor settings (like include field in generation)
 # add a sort index to the lists
 # add options for generated values
+# TODO: maybe add a date to the generation name for a generation template
 
 
 logger = get_logger(__name__)
@@ -301,8 +302,9 @@ def generate(body: generate_schema.GenerateRequest) -> generate_schema.GenerateR
     if world is None:
         raise ValueError(f"World {template.world_id} not found") 
     generation = generate_model.Generation.create(template, world)
-    command_class = base_generate_commands.get_command_class(generation)
+    command_class = base_generate_commands.get_command_class(generation=generation)
     command = command_class(datastore=datastore, user="test", generation=generation)
+    command.generation = generation
     response = command.execute()
     return response
 

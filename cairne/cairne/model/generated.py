@@ -103,11 +103,19 @@ class GeneratedBase(BaseModel):
         spec.BaseGenerationResult | str | int | float | bool | None
     ] = Field(default=None)
     deletion: Optional[Deletion] = Field(default=None)
+    
     generate: Optional[bool] = Field(default=None, exclude=True)
+    generated_label: Optional[str] = Field(default=None, exclude=True)
+    # This one is not needed for the apply, it can be calculateed during the apply
+    # If we wanted to use the "edit" endpoint, then we would need to remember the generation source.
+    generated_js: Optional[str] = Field(default=None, exclude=True)
 
     validation_errors: List[spec.ValidationError] = Field(
         default_factory=list, exclude=True
     )
+    
+    def apply_generation(self, generation: "Generated") -> None:
+        raise NotImplementedError(f"Please implement apply_generation for {self.__class__.__name__}")
 
     def to_generated_versions(self) -> List[GeneratedVersion]:
         return [
@@ -146,7 +154,15 @@ class GeneratedValueResult(BaseModel):
 
 
 class GeneratedValue(GeneratedBase):
+    # This field is not needed, I re-did it.
     generated_result: Optional[GeneratedValueResult] = Field(default=None, exclude=True)
+    
+    def apply_generation(self, generated: "Generated") -> None:
+        if not isinstance(generated, GeneratedValue):
+            logger.warning("Cannot apply value result to non-value", generated=generated)
+            return
+        self.generated_js = generated.get_js()
+        self.generated_label = str(json.loads(self.generated_js))
     
     # choices presented to the user?
     def search_for_entity(
@@ -160,6 +176,9 @@ class GeneratedValue(GeneratedBase):
         raise spec.InvalidPathError(
             path=path, index=path_index, message="Cannot traverse into a value"
         )
+    
+    def get_js(self) -> str:
+        return json.dumps(self.parsed)  # type: ignore
 
 
 class GeneratedString(GeneratedValue):
@@ -196,9 +215,21 @@ class GeneratedBoolean(GeneratedValue):
 
 class GeneratedObject(GeneratedBase):
     generated_type: Literal["object"] = Field(default_factory=lambda: "object")
-    children: Dict[str, GeneratedBase] = Field(default=dict)
+    children: Dict[str, "Generated"] = Field(default=dict)
     parsed: Optional[dict] = Field(default=dict)
     # TODO: This should be a field on the value itself...
+    
+    def apply_generation(self, generated: "Generated") -> None:
+        if not isinstance(generated, GeneratedObject):
+            logger.warning("Cannot apply object result to non-object", generated=generated)
+            return
+        self.generated_js = "{}" # TODO
+        self.generated_label = ", ".join(key for key in generated.children.keys())
+        for key, value in generated.children.items():
+            if key not in self.children:
+                logger.warning("TODO: key is generated but not in current children.", key=key)
+                continue
+            self.children[key].apply_generation(value)
 
     def is_generated(self) -> bool:
         return self.parsed is not None and len(self.parsed) > 0
@@ -251,9 +282,17 @@ class GenerateListSettings(BaseModel):
 
 class GeneratedList(GeneratedBase):
     generated_type: Literal["list"] = Field(default_factory=lambda: "list")
-    elements: List[GeneratedBase] = Field(default=list)
+    elements: List["Generated"] = Field(default=list)
     parsed: Optional[list] = Field(default=dict)
     generation_settings: Optional[GenerateListSettings] = Field(default=None, exclude=True)
+    
+    def apply_generation(self, generated: "Generated") -> None:
+        if not isinstance(generated, GeneratedList):
+            logger.warning("Cannot apply list result to non-list", generated=generated)
+            return
+        self.generated_js = "[]" # TODO
+        self.generated_label = f"{len(generated.elements)} items"
+        # We have to change the schema to have add options or something...
 
     def is_generated(self) -> bool:
         return self.parsed is not None and len(self.parsed) > 0
@@ -423,6 +462,10 @@ Generated = Annotated[
     ],
     Field(discriminator="generated_type"),
 ]
+
+GeneratedObject.model_rebuild()
+GeneratedList.model_rebuild()
+
 
 
 # class Generatable(BaseModel):

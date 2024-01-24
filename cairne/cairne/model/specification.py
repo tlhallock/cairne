@@ -48,7 +48,7 @@ class GeneratablePath(BaseModel):
 
     def append(self, element: GeneratablePathElement) -> "GeneratablePath":
         return GeneratablePath(
-            path_elements=[element.model_copy() for element in self.path_elements]
+            path_elements=[element.model_copy(deep=True) for element in self.path_elements]
             + [element]
         )
 

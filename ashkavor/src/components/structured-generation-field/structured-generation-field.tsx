@@ -25,10 +25,6 @@ export const StructuredGenerationField = ({ generatedField }: StructuredGenerati
     const dispatch = useDispatch();
 
     const isGenerated = generatedField?.generate || false;
-    if (generatedField.label == 'name') {
-        console.log('Found field', generatedField);
-        console.log('is generated', isGenerated);
-    }
     const toggleGenerate = () => {
         if (!templateId) {
             return;
@@ -55,14 +51,26 @@ export const StructuredGenerationField = ({ generatedField }: StructuredGenerati
     // Need to also get the generation result....
 
     return (
-        <div>
-            <label>Generate</label>
-            <input
-                type="checkbox"
-                checked={isGenerated}
-                onChange={toggleGenerate}
-                disabled={!templateId}
-            />
+        <div
+            style={{
+                display: 'grid',
+                gridTemplateColumns: '25% 75%',
+            }}
+        >
+            <div>
+                <label>Generate</label>
+                <input
+                    type="checkbox"
+                    checked={isGenerated}
+                    onChange={toggleGenerate}
+                    disabled={!templateId}
+                />
+            </div>
+            <div>
+                <label>{generatedField.generated_value_label}</label>
+                <br />
+                <button>Apply</button>
+            </div>
         </div>
     );
 };

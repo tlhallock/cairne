@@ -77,6 +77,7 @@ export type Js = string;
 export type Label3 = string;
 export type RawValue = string;
 export type ValueJs1 = string;
+export type GeneratedValueLabel = string | null;
 export type GeneratedValueJs = string | null;
 export type ValidationErrors = string[];
 export type Generate = boolean | null;
@@ -107,6 +108,7 @@ export type ImageUri1 = string | null;
 export type CreatedAt1 = string;
 export type UpdatedAt1 = string;
 export type GenerationId5 = string;
+export type Label5 = string;
 export type BeginTime = string;
 export type EndTime = string | null;
 /**
@@ -129,7 +131,7 @@ export type WorldId4 = string;
 export type EntityId6 = string;
 export type Prompt = string | null;
 export type Name8 = string;
-export type Label5 = string;
+export type Label6 = string;
 export type Preview = string;
 export type Valid = boolean;
 export type Included = boolean;
@@ -137,7 +139,7 @@ export type Instructions = InstructionView[];
 export type JsonStructurePreview = string | null;
 export type FieldsToInclude = GeneratablePath[];
 export type Name9 = string;
-export type Label6 = string;
+export type Label7 = string;
 export type Preview1 = string;
 export type Valid1 = boolean;
 export type Included1 = boolean;
@@ -435,6 +437,7 @@ export interface GeneratedField {
   raw_value: RawValue;
   value_js: ValueJs1;
   edit_path: GeneratablePath;
+  generated_value_label?: GeneratedValueLabel;
   generated_value_js?: GeneratedValueJs;
   validation_errors?: ValidationErrors;
   generate?: Generate;
@@ -491,6 +494,7 @@ export interface GenerationHistory {
  */
 export interface GenerationListItem {
   generation_id: GenerationId5;
+  label: Label5;
   begin_time: BeginTime;
   end_time: EndTime;
   status: GenerationStatus;
@@ -547,7 +551,7 @@ export interface GenerationTemplateView {
  */
 export interface InstructionView {
   name: Name8;
-  label: Label5;
+  label: Label6;
   preview: Preview;
   valid: Valid;
   included?: Included;
@@ -559,7 +563,7 @@ export interface InstructionView {
  */
 export interface ValidationPreview {
   name: Name9;
-  label: Label6;
+  label: Label7;
   preview: Preview1;
   valid: Valid1;
   included?: Included1;

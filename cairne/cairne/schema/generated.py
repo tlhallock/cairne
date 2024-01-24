@@ -46,6 +46,8 @@ class GeneratedField(BaseModel):
     raw_value: str = Field()
     value_js: str = Field()
     edit_path: spec.GeneratablePath = Field()
+    
+    generated_value_label: Optional[str] = Field(default=None)
     generated_value_js: Optional[str] = Field(default=None)
     
     validation_errors: List[str] = Field(default_factory=list)

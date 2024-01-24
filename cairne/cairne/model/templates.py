@@ -78,7 +78,7 @@ class GenerationType(str, Enum):
 
 class JsonStructure(BaseModel):
     json_schema: Optional[str] = Field(default=None)
-    examples: Optional[str] = Field(default=None)
+    example_str: Optional[str] = Field(default=None)
 
 
 class GeneratorModel(BaseModel):

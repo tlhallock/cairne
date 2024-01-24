@@ -16,7 +16,11 @@ import { GenerationTemplate } from '../generation-template/generation-template';
 import { GenerationTemplates } from '../generation-templates/generation-templates';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../store';
-import { fetchEntity } from '../../openrpg/reducers/templates';
+import {
+    fetchEntity,
+    listEntityTemplates,
+    listEntityGenerations,
+} from '../../openrpg/reducers/templates';
 
 export interface EntityEditorProps {
     className?: string;
@@ -49,6 +53,8 @@ export const EntityEditor = ({ className }: EntityEditorProps) => {
             return;
         }
         dispatch(fetchEntity(worldId, entityId));
+        dispatch(listEntityTemplates(entityId));
+        dispatch(listEntityGenerations(entityId));
         // getEntity(
         //     worldId,
         //     entityId,

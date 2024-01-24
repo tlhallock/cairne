@@ -49,6 +49,7 @@ def generate_thread_entry(datastore: Datastore, generation: generate_model.Gener
     del datastore.generation_threads[generation.generation_id]
 
 
+
 # @dataclass
 # class GenerationBuilder:
 #     user: str
@@ -245,6 +246,8 @@ class BaseGenerate(Command):
         self.datastore.save()
 
         self.spawn_generation()
+        
+        print("Have a generation id", self.generation.generation_id)
 
         return generate_schema.GenerateResponse(
             generation_id=self.generation.generation_id

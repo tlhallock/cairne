@@ -95,7 +95,7 @@ class GetEntity(Command):
             raise ValueError(f"World not found: {self.request.world_id}")
         
         # Copying so that excluded fields written for the export don't have a concurrency issue
-        world = world.model_copy()
+        world = world.model_copy(deep=True)
 
         search_path = spec.GeneratablePath(path_elements=[])
         located_entity = world.search_for_entity(self.request.entity_id, path=search_path)
@@ -106,7 +106,7 @@ class GetEntity(Command):
         specification = generated_entity.entity_type.get_specification()
         validation_context = validation.ValidationContext(
             world=world,
-            current_path=located_entity.path.model_copy(),
+            current_path=located_entity.path.model_copy(deep=True),
         )
         validation.validate_generated(validation_context, specification, generated_entity)
         
@@ -114,8 +114,14 @@ class GetEntity(Command):
             generation = self.datastore.generations.get(self.request.generation_id, None)
             if generation is None:
                 raise ValueError(f"Generation not found: {self.request.generation_id}")
-            generation.apply(world=world)
-        
+
+            context = parsing.ParseContext(source=generation.as_source())
+            specification = WORLD.get(generation.template_snapshot.target_path, 0)
+            generated = parsing.parse(context, specification, raw=generation.result.raw_text)
+            parsed = typing.cast(generated_model.GeneratedEntity, generated)
+
+            generation.apply(world=world, parsed=parsed)
+
         if self.request.template_id is not None:
             template = self.datastore.generation_templates.get(self.request.template_id, None)
             if template is None:
@@ -124,7 +130,8 @@ class GetEntity(Command):
 
         exported = export.export_generated_entity(
             world=world,
-            path=located_entity.path, generated_entity=located_entity.entity
+            path=located_entity.path,
+            generated_entity=located_entity.entity
         )
         return generated_schema.GetEntityResponse(entity=exported)
 

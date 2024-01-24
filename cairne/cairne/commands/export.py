@@ -61,6 +61,8 @@ def export_generated_object_child(
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=children,
         generate=generatable.generate,
+        generated_value_label=generatable.generated_label,
+        generated_value_js=generatable.generated_js,
     )
 
 
@@ -113,6 +115,8 @@ def export_generated_list_child(
         children=children,
         add_value_type=add_value_type,
         generate=generatable.generate,
+        generated_value_label=generatable.generated_label,
+        generated_value_js=generatable.generated_js,
         number_to_generate=generated_schema.NumberToGenerate(
             number_to_generate=generatable.generation_settings.number_to_generate,
         )
@@ -146,6 +150,8 @@ def export_generated_dictionary_child(
         choices=None,  # TODO
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=children,
+        generated_value_label=generatable.generated_label,
+        generated_value_js=generatable.generated_js,
         entity_dictionary_type=export_entity_type(
             specification.entity_specification.entity_type
         ),
@@ -168,6 +174,8 @@ def export_generated_boolean_child(
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=None,
         generate=generatable.generate,
+        generated_value_label=generatable.generated_label,
+        generated_value_js=generatable.generated_js,
     )
 
 
@@ -212,6 +220,8 @@ def export_generated_string_child(
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=None,
         generate=generatable.generate,
+        generated_value_label=generatable.generated_label,
+        generated_value_js=generatable.generated_js,
     )
 
 
@@ -231,6 +241,8 @@ def export_generated_integer_child(
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=None,
         generate=generatable.generate,
+        generated_value_label=generatable.generated_label,
+        generated_value_js=generatable.generated_js,
     )
 
 
@@ -250,6 +262,8 @@ def export_generated_float_child(
         validation_errors=export_validation_errors(generatable.validation_errors),
         children=None,
         generate=generatable.generate,
+        generated_value_label=generatable.generated_label,
+        generated_value_js=generatable.generated_js,
     )
 
 
@@ -319,6 +333,7 @@ def export_generation_list_item(
     generation: generate_model.Generation,
 ) -> generate_schema.GenerationListItem:
     return generate_schema.GenerationListItem(
+        label=generation.template_snapshot.name,
         generation_id=generation.generation_id,
         begin_time=generation.begin_time,
         end_time=generation.end_time,
@@ -379,7 +394,7 @@ def export_instructions(
 ) -> List[template_schema.InstructionView]:
     specification = WORLD.get(template.target_path, 0)
     unfilled_instructions = [
-        instruction.model_copy()
+        instruction.model_copy(deep=True)
         for instruction in specification.generation.instructions
     ]
     instructions_by_name = {

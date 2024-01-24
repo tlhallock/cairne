@@ -281,7 +281,8 @@ def parse_list(
         metadata=context.create_metadata(),
         raw=raw,
         parsed=parsed,
-        elements=typing.cast(List[generated_model.GeneratedBase], elements),
+        elements=elements,
+    # typing.cast(List[generated_model.Generated], 
     )
 
 

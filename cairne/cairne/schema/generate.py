@@ -42,6 +42,7 @@ class GenerateModelChoice(BaseModel):
 
 class GenerationListItem(BaseModel):
     generation_id: uuid.UUID = Field()
+    label: str = Field()
     begin_time: datetime.datetime = Field()
     end_time: Optional[datetime.datetime] = Field()
     status: generation_model.GenerationStatus = Field()

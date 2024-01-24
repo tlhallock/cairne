@@ -575,6 +575,18 @@
         "edit_path": {
           "$ref": "#/$defs/GeneratablePath"
         },
+        "generated_value_label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Generated Value Label"
+        },
         "generated_value_js": {
           "anyOf": [
             {
@@ -731,6 +743,10 @@
           "title": "Generation Id",
           "type": "string"
         },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
         "begin_time": {
           "format": "date-time",
           "title": "Begin Time",
@@ -754,6 +770,7 @@
       },
       "required": [
         "generation_id",
+        "label",
         "begin_time",
         "end_time",
         "status"

@@ -180,7 +180,7 @@ GenerationTemplateProps) => {
 
         structuredGenerate(generateRequest, (response: openrpg.GenerateResponse) => {
             dispatch(listEntityGenerations(worldId, entityId));
-            dispatch(viewGeneration(response.generation_id));
+            dispatch(viewGeneration(entityId, response.generation_id));
         });
     };
 
@@ -268,6 +268,7 @@ GenerationTemplateProps) => {
 
             <br />
             {generationId && <GenerateStatus generationId={generationId} />}
+            <br />
             <button onClick={generate} disabled={!templateId}>
                 Generate!
             </button>
