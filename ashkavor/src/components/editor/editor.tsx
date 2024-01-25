@@ -9,9 +9,10 @@ import { StructuredGenerationSettings } from '../structured-generation-settings/
 import * as generation from '../../openrpg/generation';
 import { StructuredGenerationField } from '../structured-generation-field/structured-generation-field';
 import { GenerateStatus } from '../generate-status/generate-status';
+import { ValueEditorProps } from './value-editors';
 
 import { FIELD_STYLES, HEADER_STYLES } from './base';
-import { FieldProps } from './base';
+import { FieldProps, UpdaterProps } from './base';
 import {
     StringFieldEditor,
     BooleanValueEditor,
@@ -65,13 +66,6 @@ const Spacer = ({ depth }: SpacerProps) => {
     return <span style={{ marginLeft: 50 * depth }} />;
 };
 
-interface UpdaterProps {
-    path: openrpg.GeneratablePath;
-    jsValue: string;
-    clearJsValue: () => void;
-    validEdits: boolean;
-}
-
 const UpdateButton = ({ path, onEdit, jsValue, clearJsValue, validEdits }: UpdaterProps) => {
     const location = useLocation();
     const worldId = location.pathname.split('/')[2];
@@ -93,6 +87,75 @@ const UpdateButton = ({ path, onEdit, jsValue, clearJsValue, validEdits }: Updat
     );
 };
 
+const FieldEditorSelection = (props: ValueEditorProps) => {
+    const location = useLocation();
+    const worldId = location.pathname.split('/')[2];
+
+    if (props.field.choices?.length || 0 > 0) {
+        return <ChoicesEditor {...props} jsValue={props.jsValue} setJsValue={props.setJsValue} />;
+    }
+    switch (props.field.value_type) {
+        case 'string':
+            return <StringFieldEditor {...props} />;
+        case 'text':
+            return <TextFieldEditor {...props} />;
+        case 'boolean':
+            return <BooleanValueEditor {...props} />;
+        case 'float':
+            return <FloatValueEditor {...props} />;
+        case 'integer':
+            return <IntegerValueEditor {...props} />;
+        case 'list':
+            return <div />;
+        case 'object':
+            return <div />;
+        case 'entities_dictionary':
+            return (
+                <Link
+                    to={
+                        '/world/' +
+                        worldId +
+                        '/entities/' +
+                        props.field.entity_dictionary_type?.name
+                    }
+                >
+                    Edit {props.field.entity_dictionary_type?.label}
+                </Link>
+            );
+        default:
+            return <label>Unknown editor</label>;
+    }
+};
+
+export interface UpdaterSelectionProps {
+    updateProps: UpdaterProps;
+    value_type: openrpg.GeneratedValueEditor;
+}
+
+const UpdaterSelection = ({ value_type, updateProps }: UpdaterSelectionProps) => {
+    switch (value_type) {
+        case 'string':
+            return <UpdateButton {...updateProps} />;
+        case 'text':
+            return <UpdateButton {...updateProps} />;
+        case 'boolean':
+            return <UpdateButton {...updateProps} />;
+        case 'float':
+            return <UpdateButton {...updateProps} />;
+        case 'integer':
+            return <UpdateButton {...updateProps} />;
+        // List adder should be split up so the add button is with the update button, and the editor is aligns with the others
+        case 'list':
+            return <ListAdder {...updateProps} />;
+        case 'object':
+            return <div />;
+        case 'entities_dictionary':
+            return <div />;
+        default:
+            return <label>Unknown value type: {value_type}</label>;
+    }
+};
+
 const Field = (props: FieldProps) => {
     const [jsValue, setJsValue] = React.useState<string>('');
     const location = useLocation();
@@ -111,6 +174,7 @@ const Field = (props: FieldProps) => {
         jsValue: jsValue,
         clearJsValue: () => setJsValue(''),
         validEdits,
+        add_value_type: props.field.add_value_type,
     };
     return (
         <>
@@ -119,76 +183,10 @@ const Field = (props: FieldProps) => {
                 {props.field.label}
             </label>
             <label>{JSON.parse(props.field.value_js)}</label>
-            {
-                props.field.choices?.length || 0 > 0 ? (
-                    <ChoicesEditor {...props} jsValue={jsValue} setJsValue={setJsValue} />
-                ) : (
-                    {
-                        string: (
-                            <StringFieldEditor
-                                {...props}
-                                jsValue={jsValue}
-                                setJsValue={setJsValue}
-                            />
-                        ),
-                        text: (
-                            <TextFieldEditor {...props} jsValue={jsValue} setJsValue={setJsValue} />
-                        ),
-                        boolean: (
-                            <BooleanValueEditor
-                                {...props}
-                                jsValue={jsValue}
-                                setJsValue={setJsValue}
-                            />
-                        ),
-                        float: (
-                            <FloatValueEditor
-                                {...props}
-                                jsValue={jsValue}
-                                setJsValue={setJsValue}
-                            />
-                        ),
-                        integer: (
-                            <IntegerValueEditor
-                                {...props}
-                                jsValue={jsValue}
-                                setJsValue={setJsValue}
-                            />
-                        ),
-                        list: <div />,
-                        object: <div />,
-                        entities_dictionary: (
-                            <Link
-                                to={
-                                    '/world/' +
-                                    worldId +
-                                    '/entities/' +
-                                    props.field.entity_dictionary_type?.name
-                                }
-                            >
-                                Edit {props.field.entity_dictionary_type?.label}
-                            </Link>
-                        ),
-                    }[props.field.value_type]
-                )
-                //  || <span>{"Unknown value type: " + props.field.value_type}}</span>
-            }
-            {{
-                string: <UpdateButton {...updateProps} />,
-                text: <UpdateButton {...updateProps} />,
-                boolean: <UpdateButton {...updateProps} />,
-                float: <UpdateButton {...updateProps} />,
-                integer: <UpdateButton {...updateProps} />,
-                // List adder should be split up so the add button is with the update button, and the editor is aligns with the others
-                list: <ListAdder {...props} />,
-                object: <div />,
-                entities_dictionary: <div />,
-            }[props.field.value_type] || (
-                <label>Unknown value type: {props.field.value_type}</label>
-            )}
-
+            <FieldEditorSelection {...props} jsValue={jsValue} setJsValue={setJsValue} />
+            <UpdaterSelection updateProps={updateProps} value_type={props.field.value_type} />
             <Validations validationErrors={props.field.validation_errors} />
-            <StructuredGenerationField generatedField={props.field} />
+            <StructuredGenerationField generatedField={props.field} setJsValue={setJsValue} />
 
             {props.field.children?.map((value, index) => (
                 // Maybe this should be a field list item?

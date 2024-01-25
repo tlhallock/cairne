@@ -53,7 +53,7 @@ export const EntityEditor = ({ className }: EntityEditorProps) => {
             return;
         }
         dispatch(fetchEntity(worldId, entityId));
-        dispatch(listEntityTemplates(entityId));
+        dispatch(listEntityTemplates(worldId, entityId));
         dispatch(listEntityGenerations(entityId));
         // getEntity(
         //     worldId,

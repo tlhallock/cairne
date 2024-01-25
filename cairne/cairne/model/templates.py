@@ -272,6 +272,16 @@ class GenerationTemplate(BaseModel):
     numbers_to_generate: List[NumberToGenerate] = Field(default_factory=list)
     deletion: Optional[generated_model.Deletion] = Field(default=None)
     
+    def for_entity(self, entity_id: uuid.UUID) -> "GenerationTemplate":
+        cloned = self.model_copy(deep=True)
+        if self.entity_id == entity_id:
+            return cloned
+        
+        old_entity_id = cloned.entity_id
+        cloned.entity_id = entity_id
+        cloned.target_path = cloned.target_path.replace_entity(old_entity_id, self.entity_id)
+        return cloned
+    
     def get_instructions(self) -> List[spec.PredefinedInstruction]:
         specification = WORLD.get(self.target_path, 0)
         return [

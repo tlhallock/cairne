@@ -5,31 +5,11 @@ import * as openrpg from '../../openrpg/schema/schema';
 import React from 'react';
 import { getGeneration } from '../../openrpg/client';
 
+import { getGenerationStatusLabel } from '../generation/generation';
+
 export interface GenerateStatusProps {
     generationId?: string;
 }
-
-const getGenerationStatusLabel = (generationStatus: openrpg.GenerationStatus | undefined) => {
-    if (!generationStatus) {
-        return 'Loading...';
-    }
-
-    // 'queued' | 'in_progress' | 'streaming' | 'error' | 'complete';
-    switch (generationStatus) {
-        case 'queued':
-            return 'Queued';
-        case 'in_progress':
-            return 'In Progress';
-        case 'streaming':
-            return 'Streaming';
-        case 'error':
-            return 'Error';
-        case 'complete':
-            return 'Complete';
-        default:
-            return 'Unknown';
-    }
-};
 
 export const GenerateStatus = ({ generationId }: GenerateStatusProps) => {
     const [refreshCounter, setRefreshCounter] = React.useState<number>(0);

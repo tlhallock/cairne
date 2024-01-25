@@ -415,6 +415,19 @@
           "format": "uuid",
           "title": "Template Id",
           "type": "string"
+        },
+        "target_entity_id": {
+          "anyOf": [
+            {
+              "format": "uuid",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Target Entity Id"
         }
       },
       "required": [
@@ -1042,6 +1055,17 @@
         },
         "status": {
           "$ref": "#/$defs/GenerationStatus"
+        },
+        "raw_generated_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Raw Generated Text"
         }
       },
       "required": [
@@ -1049,7 +1073,8 @@
         "template",
         "begin_time",
         "end_time",
-        "status"
+        "status",
+        "raw_generated_text"
       ],
       "title": "GenerationView",
       "type": "object"
@@ -1435,6 +1460,17 @@
           ],
           "default": null,
           "title": "Entity Id"
+        },
+        "entity_type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EntityType"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "title": "ListTemplatesQuery",

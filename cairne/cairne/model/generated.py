@@ -415,7 +415,8 @@ class EntityDictionary(GeneratedBase):
             raise spec.InvalidPathError(
                 path=path,
                 index=path_index,
-                message=f"Could not find entity with id {path_element.entity_id}",
+                message=f"Could not find entity with id {path_element.entity_id}."
+                f"Path: {path}",
             )
         return entity.get(path=path, path_index=path_index + 1)
 

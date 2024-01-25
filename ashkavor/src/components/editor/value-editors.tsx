@@ -1,14 +1,4 @@
-import classNames from 'classnames';
-import styles from './entity-editor.module.scss';
-import { useLocation, useNavigate } from 'react-router-dom';
 import * as openrpg from '../../openrpg/schema/schema';
-import React from 'react';
-import { getEntity, deleteEntity, structuredGenerate } from '../../openrpg/client';
-import { StructuredGenerationSettings } from '../structured-generation-settings/structured-generation-settings';
-
-import * as generation from '../../openrpg/generation';
-import { StructuredGenerationField } from '../structured-generation-field/structured-generation-field';
-import { GenerateStatus } from '../generate-status/generate-status';
 
 export interface ValueEditorProps {
     field: openrpg.GeneratedField;
@@ -62,15 +52,15 @@ export const StringFieldEditor = ({ setJsValue, jsValue }: ValueEditorProps) => 
     );
 };
 
-export const TextFieldEditor = ({ field, onEdit }: ValueEditorProps) => {
+export const TextFieldEditor = ({ field }: ValueEditorProps) => {
     return <input type="text" />;
 };
 
-export const BooleanValueEditor = ({ field, onEdit }: ValueEditorProps) => {
+export const BooleanValueEditor = ({ field }: ValueEditorProps) => {
     return <input type="checkbox" />;
 };
 
-export const IntegerValueEditor = ({ field, onEdit }: ValueEditorProps) => {
+export const IntegerValueEditor = ({ field }: ValueEditorProps) => {
     return <input type="number" />;
 };
 

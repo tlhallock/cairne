@@ -361,7 +361,7 @@ def export_generation(
         begin_time=generation.begin_time,
         end_time=generation.end_time,
         status=generation.status,
-        # result=export_generation_result(generation.result),
+        raw_generated_text=generation.result.raw_text if generation.result else None,
     )
 
 

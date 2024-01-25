@@ -301,6 +301,7 @@ def generate(body: generate_schema.GenerateRequest) -> generate_schema.GenerateR
     world = datastore.worlds.get(template.world_id, None)
     if world is None:
         raise ValueError(f"World {template.world_id} not found") 
+    template = template.for_entity(body.target_entity_id)
     generation = generate_model.Generation.create(template, world)
     command_class = base_generate_commands.get_command_class(generation=generation)
     command = command_class(datastore=datastore, user="test", generation=generation)

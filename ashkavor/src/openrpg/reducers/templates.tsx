@@ -45,6 +45,10 @@ export interface TemplatesState {
     generationsCache: EntityGenerationCache;
     templatesCache: EntityTemplateCache;
     currentEntity: openrpg.EntityId | null;
+
+    entityTypeTemplates: {
+        [entityType: string]: openrpg.TemplateListItem[];
+    };
 }
 
 const createInitialState = (): TemplatesState => ({
@@ -53,6 +57,7 @@ const createInitialState = (): TemplatesState => ({
     templatesCache: {},
     generationsCache: {},
     currentEntity: null,
+    entityTypeTemplates: {},
 });
 
 const templatesSlice = createSlice({
@@ -67,6 +72,9 @@ const templatesSlice = createSlice({
                 state.entities[payload.entityId] = createEmptyEntityTemplates();
             }
             state.entities[payload.entityId].availableTemplates = payload.templates;
+        },
+        setEntityTypeTemplates: (state, { payload }) => {
+            state.entityTypeTemplates[payload.entityType] = payload.templates;
         },
         editTemplate: (state, { payload }) => {
             if (!(payload.entityId in state.entities)) {
@@ -130,7 +138,9 @@ export const editTemplate =
                 templateId,
             })
         );
-
+        if (!templateId) {
+            return;
+        }
         dispatch(fetchTemplate(templateId));
     };
 
@@ -164,23 +174,52 @@ export const viewGeneration =
         dispatch(fetchGeneration(generationId));
     };
 
-export const listEntityTemplates = (entityId: openrpg.EntityId) => (dispatch) => {
-    if (!entityId) {
-        return;
-    }
-
-    listTemplates(entityId, (response: openrpg.ListTemplatesResponse) => {
-        if (!response.templates) {
+export const listEntityTemplates =
+    (worldId: openrpg.EntityId | null, entityId: openrpg.EntityId | null) => (dispatch) => {
+        if (!worldId || !entityId) {
             return;
         }
-        dispatch(
-            templatesSlice.actions.setTemplates({
-                entityId,
-                templates: response.templates,
-            })
-        );
-    });
-};
+        console.log('Listing entity templates for entity', worldId, entityId);
+
+        const query: openrpg.ListTemplatesQuery = {
+            world_id: worldId,
+            entity_id: entityId,
+        };
+        listTemplates(query, (response: openrpg.ListTemplatesResponse) => {
+            if (!response.templates) {
+                return;
+            }
+            dispatch(
+                templatesSlice.actions.setTemplates({
+                    entityId,
+                    templates: response.templates,
+                })
+            );
+        });
+    };
+export const listEntityTypeTemplates =
+    (worldId: openrpg.EntityId | null, entityType: openrpg.EntityType) => (dispatch) => {
+        if (!worldId) {
+            return;
+        }
+        console.log('Listing entity templates for entity type', worldId, entityType);
+
+        const query: openrpg.ListTemplatesQuery = {
+            world_id: worldId,
+            entity_type: entityType,
+        };
+        listTemplates(query, (response: openrpg.ListTemplatesResponse) => {
+            if (!response.templates) {
+                return;
+            }
+            dispatch(
+                templatesSlice.actions.setEntityTypeTemplates({
+                    entityType,
+                    templates: response.templates,
+                })
+            );
+        });
+    };
 
 export const listEntityGenerations = (entityId: openrpg.EntityId) => (dispatch) => {
     if (!entityId) {
@@ -207,7 +246,7 @@ export const editEntity = (entityId: openrpg.EntityId) => (dispatch) => {
         })
     );
 
-    dispatch(listEntityTemplates(entityId));
+    dispatch(listEntityTemplates(null, entityId));
     dispatch(listEntityGenerations(entityId));
 };
 

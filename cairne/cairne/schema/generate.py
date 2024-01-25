@@ -35,9 +35,20 @@ class GenerateModelChoice(BaseModel):
             models=model.get_models(),
         )
 
+
+class ApplyGenerationType(str, Enum):
+    REPLACE = "replace"
+    APPEND = "append"
+
+
+class GenerationApplicationOption(BaseModel):
+    label: str = Field()
+    source: generated_model.GenerationSource = Field()
+    path: spec.GeneratablePath = Field()
+    application_type: ApplyGenerationType = Field()
+    children: List['GenerationApplicationOption'] = Field(default_factory=list)
     
-
-
+    addToAdderFields: str = Field(default=None)
 
 
 class GenerationListItem(BaseModel):
@@ -55,8 +66,7 @@ class GenerationView(BaseModel):
     begin_time: datetime.datetime = Field()
     end_time: Optional[datetime.datetime] = Field()
     status: generation_model.GenerationStatus = Field()
-    # result !?
-    # No, I remember now: I was clever, and it applies itself to a generated
+    raw_generated_text: Optional[str] = Field()
 
 
 class JsonStructureRequest(BaseModel):
@@ -67,6 +77,7 @@ class JsonStructureRequest(BaseModel):
 
 class GenerateRequest(BaseModel):
     template_id: uuid.UUID = Field()
+    target_entity_id: Optional[uuid.UUID] = Field(default=None)
 
 
 class GenerateResponse(Response):

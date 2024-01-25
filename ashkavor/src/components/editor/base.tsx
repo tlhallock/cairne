@@ -29,3 +29,11 @@ export interface FieldProps {
     field: openrpg.GeneratedField;
     depth: number;
 }
+
+export interface UpdaterProps {
+    path: openrpg.GeneratablePath;
+    jsValue: string;
+    clearJsValue: () => void;
+    validEdits: boolean;
+    add_value_type?: openrpg.GeneratedValueEditor | null;
+}

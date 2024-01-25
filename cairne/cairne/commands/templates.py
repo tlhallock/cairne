@@ -90,12 +90,18 @@ class ListTemplates(Command):
     request: templates_schema.ListTemplatesQuery
     
     def execute(self) -> templates_schema.ListTemplatesResponse:
+        if self.request.entity_type is not None:
+            print("list templates", self.request, [
+                (template.name, template.entity_type, template.entity_type == self.request.entity_type)
+                for template in self.datastore.generation_templates.values()
+            ])
         templates = [
             export.export_template_list_item(template)
             for template in self.datastore.generation_templates.values()
             if template.deletion is None
             if self.request.world_id is None or template.world_id == self.request.world_id
             if self.request.entity_id is None or template.entity_id == self.request.entity_id
+            if self.request.entity_type is None or template.entity_type == self.request.entity_type
         ]
         return templates_schema.ListTemplatesResponse(templates=templates)
 

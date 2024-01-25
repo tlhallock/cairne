@@ -9,9 +9,13 @@ import { fetchEntity, fetchTemplate } from '../../openrpg/reducers/templates';
 
 export interface StructuredGenerationFieldProps {
     generatedField: openrpg.GeneratedField;
+    setJsValue: (valueJson: string) => void;
 }
 
-export const StructuredGenerationField = ({ generatedField }: StructuredGenerationFieldProps) => {
+export const StructuredGenerationField = ({
+    generatedField,
+    setJsValue,
+}: StructuredGenerationFieldProps) => {
     const location = useLocation();
     const worldId = location.pathname.split('/')[2];
     const entityType = location.pathname.split('/')[4];
@@ -49,6 +53,7 @@ export const StructuredGenerationField = ({ generatedField }: StructuredGenerati
     };
 
     // Need to also get the generation result....
+    // console.log('Generated field', generatedField);
 
     return (
         <div
@@ -69,7 +74,20 @@ export const StructuredGenerationField = ({ generatedField }: StructuredGenerati
             <div>
                 <label>{generatedField.generated_value_label}</label>
                 <br />
-                <button>Apply</button>
+                <button>Replace</button>
+                {generatedField.value_type === 'string' && (
+                    <button
+                        disabled={!generatedField.generated_value_js}
+                        onClick={() => {
+                            if (!generatedField.generated_value_js) {
+                                return;
+                            }
+                            setJsValue(generatedField.generated_value_js);
+                        }}
+                    >
+                        Edit
+                    </button>
+                )}
             </div>
         </div>
     );

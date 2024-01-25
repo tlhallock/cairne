@@ -16,6 +16,8 @@ import { CharactersList } from './components/characters-list/characters-list';
 import { WorldEntitiesList } from './components/world-entities-list/world-entities-list';
 import { EntityEditor } from './components/entity-editor/entity-editor';
 import { EntitiesListRoot } from './components/entities-list-root/entities-list-root';
+import { Generation } from './components/generation/generation';
+
 import './App.module.scss';
 
 import { Routes, Route, Link, Outlet, BrowserRouter } from 'react-router-dom';
@@ -45,6 +47,7 @@ function App() {
                                 <Route path=":entityId" element={<EntityEditor />} />
                             </Route>
                         </Route>
+                        <Route path="/generation/:generationId" element={<Generation />} />
                     </Routes>
                 </BrowserRouter>
                 {/* <RouterProvider router={router} /> */}

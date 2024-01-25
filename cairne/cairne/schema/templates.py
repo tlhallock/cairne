@@ -139,6 +139,7 @@ class UpdateTemplateResponse(Response):
 class ListTemplatesQuery(BaseModel):
     world_id: Optional[uuid.UUID] = Field(default=None)
     entity_id: Optional[uuid.UUID] = Field(default=None)
+    entity_type: Optional[spec.EntityType] = Field(default=None)
 
 
 class ListTemplatesResponse(Response):

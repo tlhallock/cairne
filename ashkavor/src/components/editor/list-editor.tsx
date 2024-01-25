@@ -10,15 +10,13 @@ import * as generation from '../../openrpg/generation';
 import { StructuredGenerationField } from '../structured-generation-field/structured-generation-field';
 import { GenerateStatus } from '../generate-status/generate-status';
 
-import { FieldProps } from './value-editors';
-import { Field } from './editor';
+import { FieldProps, UpdaterProps } from './base';
 
 export interface ListAdderProps {
     path: openrpg.GeneratablePath;
-    onEdit: () => void;
 }
 
-const StringAdder = ({ path, onEdit }: ListAdderProps) => {
+const StringAdder = ({ path }: ListAdderProps) => {
     const [value, setValue] = React.useState<string>('');
     return (
         <div>
@@ -29,7 +27,7 @@ const StringAdder = ({ path, onEdit }: ListAdderProps) => {
     );
 };
 
-const BooleanAdder = ({ path, onEdit }: ListAdderProps) => {
+const BooleanAdder = ({ path }: ListAdderProps) => {
     return (
         <div>
             <button>Add true</button>
@@ -38,7 +36,7 @@ const BooleanAdder = ({ path, onEdit }: ListAdderProps) => {
     );
 };
 
-const IntegerAdder = ({ path, onEdit }: ListAdderProps) => {
+const IntegerAdder = ({ path }: ListAdderProps) => {
     const [value, setValue] = React.useState<number>(0);
     return (
         <div>
@@ -48,7 +46,7 @@ const IntegerAdder = ({ path, onEdit }: ListAdderProps) => {
     );
 };
 
-const FloatAdder = ({ path, onEdit }: ListAdderProps) => {
+const FloatAdder = ({ path }: ListAdderProps) => {
     const [value, setValue] = React.useState<number>(0);
     return (
         <div>
@@ -58,26 +56,20 @@ const FloatAdder = ({ path, onEdit }: ListAdderProps) => {
     );
 };
 
-export interface AnyListAdderProps {
-    path: openrpg.GeneratablePath;
-    add_type: openrpg.GeneratedValueEditor;
-    onEdit: () => void;
-}
-
-export const ListAdder = (props: FieldProps) => {
-    switch (props.field.add_value_type) {
+export const ListAdder = (props: UpdaterProps) => {
+    switch (props.add_value_type) {
         case 'string':
-            return <StringAdder path={props.field.edit_path} onEdit={props.onEdit} />;
+            return <StringAdder path={props.path} />;
         case 'boolean':
-            return <BooleanAdder path={props.field.edit_path} onEdit={props.onEdit} />;
+            return <BooleanAdder path={props.path} />;
         case 'float':
-            return <FloatAdder path={props.field.edit_path} onEdit={props.onEdit} />;
+            return <FloatAdder path={props.path} />;
         case 'integer':
-            return <IntegerAdder path={props.field.edit_path} onEdit={props.onEdit} />;
+            return <IntegerAdder path={props.path} />;
     }
     return (
         <div>
-            <label>Unknown Add Type: {props.field.add_value_type}</label>
+            <label>Unknown Add Type: {props.add_value_type}</label>
             <div />
         </div>
     );

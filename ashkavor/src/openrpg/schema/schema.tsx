@@ -67,6 +67,7 @@ export type Label2 = string;
 export type Defaultmodel = string;
 export type Models = string[];
 export type TemplateId2 = string;
+export type TargetEntityId = string | null;
 export type GenerationId4 = string;
 export type EntityId4 = string;
 export type Name5 = string | null;
@@ -147,6 +148,7 @@ export type ValidationsToInclude = ValidationPreview[];
 export type GenerationId6 = string;
 export type BeginTime1 = string;
 export type EndTime1 = string | null;
+export type RawGeneratedText = string | null;
 export type GModelId1 = string | null;
 export type TemplateId4 = string | null;
 export type GenerationId7 = string | null;
@@ -403,6 +405,7 @@ export interface GenerateModelChoice {
  */
 export interface GenerateRequest {
   template_id: TemplateId2;
+  target_entity_id?: TargetEntityId;
   [k: string]: unknown;
 }
 /**
@@ -579,6 +582,7 @@ export interface GenerationView {
   begin_time: BeginTime1;
   end_time: EndTime1;
   status: GenerationStatus;
+  raw_generated_text: RawGeneratedText;
   [k: string]: unknown;
 }
 /**
@@ -724,6 +728,7 @@ export interface LoadedModel {
 export interface ListTemplatesQuery {
   world_id?: WorldId7;
   entity_id?: EntityId9;
+  entity_type?: EntityType | null;
   [k: string]: unknown;
 }
 /**

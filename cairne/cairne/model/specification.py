@@ -45,6 +45,14 @@ class GeneratablePath(BaseModel):
                 message=f"Descended out of bounds for path {self.path_elements}",
             )
         return self.path_elements[index]
+    
+    def replace_entity(self, old_entity_id: uuid.UUID, entity_id: uuid.UUID) -> "GeneratablePath":
+        return GeneratablePath(path_elements=[
+            path_element
+            if path_element.entity_id and path_element.entity_id != old_entity_id
+            else GeneratablePathElement(entity_id=entity_id)
+            for path_element in self.model_copy(deep=True).path_elements
+        ])
 
     def append(self, element: GeneratablePathElement) -> "GeneratablePath":
         return GeneratablePath(

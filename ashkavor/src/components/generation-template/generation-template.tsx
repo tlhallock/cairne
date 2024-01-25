@@ -87,7 +87,7 @@ GenerationTemplateProps) => {
         }
         deleteTemplate(templateId, (response: openrpg.DeleteTemplateResponse) => {
             dispatch(editTemplate(entityId, null));
-            dispatch(listEntityTemplates(entityId));
+            dispatch(listEntityTemplates(worldId, entityId));
         });
     };
 
@@ -176,6 +176,7 @@ GenerationTemplateProps) => {
         }
         const generateRequest: openrpg.GenerateRequest = {
             template_id: templateId,
+            target_entity_id: entityId,
         };
 
         structuredGenerate(generateRequest, (response: openrpg.GenerateResponse) => {

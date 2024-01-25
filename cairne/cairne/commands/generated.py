@@ -126,6 +126,8 @@ class GetEntity(Command):
             template = self.datastore.generation_templates.get(self.request.template_id, None)
             if template is None:
                 raise ValueError(f"Template not found: {self.request.template_id}")
+            
+            template = template.for_entity(self.request.entity_id)
             template.apply(world=world)
 
         exported = export.export_generated_entity(

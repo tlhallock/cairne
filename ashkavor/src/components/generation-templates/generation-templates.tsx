@@ -17,6 +17,7 @@ import { RootState } from '../../store';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     listEntityTemplates,
+    listEntityTypeTemplates,
     listEntityGenerations,
     editTemplate,
     viewGeneration,
@@ -32,17 +33,43 @@ export const GenerationTemplates = ({}: GenerationTemplatesProps) => {
     const navigate = useNavigate();
 
     const [newTemplateName, setNewTemplateName] = React.useState<string>('');
+    const [filterTemplates, setFilterTemplates] = React.useState<boolean>(false);
 
     const worldId = location.pathname.split('/')[2];
     const entityType = location.pathname.split('/')[4];
     const entityId = location.pathname.split('/')[5];
 
+    const templatesList = filterTemplates
+        ? templatesState?.entities[entityId]?.availableTemplates || []
+        : templatesState?.entityTypeTemplates[entityType] || [];
+    const currentTemplateId = templatesState?.entities[entityId]?.editingTemplateId;
+
+    React.useEffect(() => {
+        if (!currentTemplateId) {
+            return;
+        }
+        for (const template of templatesList) {
+            if (template.template_id === currentTemplateId) {
+                return;
+            }
+        }
+        dispatch(editTemplate(entityId, null));
+    }, [filterTemplates, worldId, entityId]);
+
+    const refreshTemplatesList = () => {
+        if (!worldId || !entityId) {
+            return;
+        }
+        dispatch(listEntityTemplates(worldId, entityId));
+        dispatch(listEntityTypeTemplates(worldId, entityType));
+    };
+
     React.useEffect(() => {
         if (!worldId || !entityId) {
             return;
         }
-        dispatch(listEntityTemplates(entityId));
-        dispatch(listEntityGenerations(entityId));
+
+        refreshTemplatesList();
     }, []);
 
     const create = () => {
@@ -60,7 +87,7 @@ export const GenerationTemplates = ({}: GenerationTemplatesProps) => {
                     return;
                 }
                 setNewTemplateName('');
-                dispatch(listEntityTemplates(worldId, entityId));
+                refreshTemplatesList();
                 dispatch(editTemplate(entityId, response.template_id));
             }
         );
@@ -71,7 +98,9 @@ export const GenerationTemplates = ({}: GenerationTemplatesProps) => {
             <input
                 type="text"
                 value={newTemplateName}
-                onChange={(e) => setNewTemplateName(e.target.value)}
+                onChange={(e) => {
+                    setNewTemplateName(e.target.value);
+                }}
             />
             <button onClick={create} disabled={!newTemplateName}>
                 Create
@@ -80,10 +109,10 @@ export const GenerationTemplates = ({}: GenerationTemplatesProps) => {
             <label>Template:</label>
             <select
                 onChange={(e) => dispatch(editTemplate(entityId, e.target.value))}
-                value={templatesState?.entities[entityId]?.editingTemplateId || ''}
+                value={currentTemplateId || ''}
             >
                 <option value="">Select a template</option>
-                {(templatesState?.entities[entityId]?.availableTemplates || []).map((template) => {
+                {templatesList.map((template) => {
                     return (
                         <option key={template.template_id} value={template.template_id}>
                             {template.name}
@@ -91,6 +120,12 @@ export const GenerationTemplates = ({}: GenerationTemplatesProps) => {
                     );
                 })}
             </select>
+            <label>Filter templates to current entity:</label>
+            <input
+                type="checkbox"
+                checked={filterTemplates}
+                onChange={(e) => setFilterTemplates(e.target.checked)}
+            />
             <br />
             <label>Generation:</label>
             <select

@@ -214,12 +214,12 @@ export const deleteTemplate = (
 };
 
 export const listTemplates = (
-    entityId: openrpg.EntityId | null,
+    query: openrpg.ListTemplatesQuery,
     onTemplates: (response: openrpg.ListTemplatesResponse) => void,
     onError: (error: Error) => void = (error: Error) => console.log(error)
 ) => {
     axios
-        .get('/templates')
+        .get('/templates', { params: query })
         .then((r) => onTemplates(r.data))
         .catch(onError);
 };

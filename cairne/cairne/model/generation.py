@@ -121,6 +121,7 @@ class Generation(BaseModel):
     def create(
         template: template_model.GenerationTemplate,
         world: generated_model.GeneratedEntity,
+        # TODO: need to add the target entity
     ) -> "Generation":
         specification = WORLD.get(template.target_path, 0)
         generation_variables = template_model.GenerationVariables.create(world)
